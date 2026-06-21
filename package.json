@@ -1,0 +1,26 @@
+{
+  "name": "screenpipe-context-pipes",
+  "version": "0.1.0",
+  "description": "Screenpipe pipes and local connectors for ActivityWatch, WHOOP, YouTube sessions, and local agent skills.",
+  "type": "module",
+  "bin": {
+    "screenpipe-context": "./bin/screenpipe-context.js"
+  },
+  "scripts": {
+    "doctor": "node bin/screenpipe-context.js doctor",
+    "snapshot": "node bin/screenpipe-context.js snapshot --dry-run",
+    "test": "node --test"
+  },
+  "keywords": [
+    "screenpipe",
+    "activitywatch",
+    "whoop",
+    "pipes",
+    "local-first",
+    "privacy"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}

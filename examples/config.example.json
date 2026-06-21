@@ -1,0 +1,13 @@
+{
+  "activityWatchBaseUrl": "http://127.0.0.1:5600/api/0",
+  "screenpipeBaseUrl": "http://127.0.0.1:3030",
+  "skillRoots": [
+    "~/.codex/skills",
+    "~/.claude/skills",
+    "~/.gemini/skills"
+  ],
+  "privacy": {
+    "includeUrls": false,
+    "includeSkillBodies": false
+  }
+}
