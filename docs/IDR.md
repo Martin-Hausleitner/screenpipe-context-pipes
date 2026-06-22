@@ -5,8 +5,8 @@
 Build a Screenpipe pipe plus local connector CLI that turns existing local
 metadata systems into Screenpipe memories. The first supported sources are
 ActivityWatch, WHOOP data imported into ActivityWatch, YouTube watch-session
-imports, Aqua Voice export metadata, Gog Calendar readiness, and local agent
-skill inventories.
+imports, Aqua Voice export metadata, Meetily meeting-capture status, Gog
+Calendar readiness, and local agent skill inventories.
 
 ## Context
 
@@ -27,7 +27,10 @@ creates durable, searchable Screenpipe memories from already-local metadata.
 - WHOOP OAuth and export downloading stay in the existing WHOOP importer.
 - ActivityWatch remains source of truth for time-series metadata.
 - Aqua Voice transcript text and raw audio are not exported into public config.
+- Meetily transcript text and raw recordings are not exported into public
+  config.
 - Calendar event titles and descriptions are not exported into public config.
+- Only one meeting-audio recorder should be active for a meeting.
 
 ## Design
 
@@ -43,8 +46,8 @@ creates durable, searchable Screenpipe memories from already-local metadata.
 
 4. `src/summarize.js`
    Converts buckets/events into compact summaries:
-   app buckets, WHOOP buckets, YouTube sessions, Aqua metadata, Gog readiness,
-   presence/status buckets.
+   app buckets, WHOOP buckets, YouTube sessions, Aqua metadata, Meetily status,
+   meeting-capture policy, Gog readiness, presence/status buckets.
 
 5. `src/screenpipe.js`
    Optional memory writer using `POST /memories`.
@@ -60,7 +63,11 @@ Screenpipe memories are tagged:
 - `source:activitywatch`
 - `source:whoop`
 - `source:youtube`
+- `source:aqua`
+- `source:meetily`
+- `source:gog-calendar`
 - `source:skills`
+- `policy:single-audio-recorder`
 - `pipe:context-hub`
 
 The memory content is a compact Markdown digest, not raw event dumps.
@@ -88,7 +95,27 @@ Disallowed:
 - private skill bodies
 - stable private IDs
 - Aqua transcript text
+- Meetily transcript text and raw recordings
 - Calendar event text
+
+## Meeting Capture Arbitration
+
+Decision:
+Meetily is the preferred meeting recorder when installed. Aqua Voice is treated
+as a dictation/import-audio metadata source. Screenpipe audio is a fallback
+recorder only when neither Meetily nor Aqua is being used for that meeting.
+
+Priority:
+
+1. Meetily records meeting audio and owns meeting-note generation.
+2. Aqua handles dictation or imported-audio metadata when Meetily is not used.
+3. Screenpipe audio records only as fallback.
+
+Screenpipe still records screen/UI context, stores memories, and indexes the
+final compact digest. It must not intentionally duplicate Meetily/Aqua audio
+for the same meeting. The connector records this as a policy signal rather than
+mutating daemon audio settings because Screenpipe exposes audio devices through
+CLI commands but not a safe per-meeting audio toggle through pipes.
 
 ## External-Data-Routing Design
 
@@ -112,6 +139,8 @@ Current lanes:
 - WHOOP lane for imported health bucket summaries.
 - YouTube lane for watch-session summaries.
 - Aqua lane for dictation metadata without transcript text.
+- Meetily lane for app install/status and meeting-capture readiness only.
+- Meeting Capture Policy lane for single-recorder arbitration.
 - Gog Calendar lane for CLI readiness and future schedule summaries without
   event text.
 - Skills lane for names, headings, and capability tags only.
@@ -150,7 +179,9 @@ default consumer use.
 - Reading browser history.
 - Publishing private ActivityWatch/WHOOP exports.
 - Publishing Aqua transcript text or raw audio.
+- Publishing Meetily transcript text or raw recordings.
 - Publishing calendar event text.
+- Running multiple meeting recorders for the same call by default.
 - Default Discord bot deployment.
 - Replacing existing AW importers.
 

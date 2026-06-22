@@ -2,14 +2,16 @@
 
 Local-first Screenpipe pipes and connector scripts for turning metadata from
 ActivityWatch, WHOOP imports, YouTube watch sessions, Aqua Voice exports,
-Gog Calendar status, local agent skills, and selected Screenpipe Store pipes
-into durable Screenpipe context.
+Meetily meeting-capture status, Gog Calendar status, local agent skills, and
+selected Screenpipe Store pipes into durable Screenpipe context.
 
 The project is intentionally conservative:
 
 - reads ActivityWatch via the local API when available
 - detects WHOOP / YouTube / presence buckets by bucket id and event shape
 - summarizes Aqua Voice export metadata without transcript text
+- detects Meetily as the primary local meeting recorder when installed
+- applies a single-audio-recorder policy before recommending Screenpipe audio
 - detects Gog Calendar CLI readiness without event title/description text
 - inventories local agent skills without copying private skill bodies by default
 - writes only compact summaries to Screenpipe memories, and only with `--write`
@@ -24,6 +26,7 @@ that lets Screenpipe centralize high-signal metadata those tools already know:
 - WHOOP sleep, recovery, strain, workouts, cycles, and journal markers
 - YouTube watch-session summaries
 - Aqua Voice dictation counts, audio duration, freshness, and model metadata
+- Meetily install status and meeting-capture role
 - Gog Calendar CLI readiness for future schedule-aware summaries
 - local skill names and capability tags
 - health/status checks for local sources
@@ -43,7 +46,7 @@ not a dump of the local `~/.screenpipe` folder.
 | Aqua Voice | linked exporter | <https://github.com/Martin-Hausleitner/aqua-voice-exporter> | counts/freshness only, no transcript text |
 | Gog Calendar | local CLI | <https://github.com/openclaw/gogcli> | readiness only; event text stays private |
 | Discord voice | linked pipeline | <https://github.com/Martin-Hausleitner/discord-voice-obsidian-agent> | local-first recording; bot mode opt-in only |
-| Meetily | recommended meeting layer | <https://github.com/Zackriya-Solutions/meetily> | self-hosted meeting notes next to Screenpipe/Aqua |
+| Meetily | installed local app | <https://github.com/Zackriya-Solutions/meetily> | primary meeting recorder; no transcript text in public config |
 | Apple Photos local search | local skill strategy | Apple Photos local library | read-only search/OCR, no exports by default |
 | CMUX manager status | local manager strategy | `cmux-agent-status.py` | summarize state, no raw terminal logs |
 | Screenpipe UI | linked UI | <https://github.com/remoun/screenpipe-ui> | terminal/Web browsing over local API |
@@ -132,8 +135,24 @@ screenpipe-context skills --roots ~/.codex/skills,~/.claude/skills
 | WHOOP | ActivityWatch buckets `aw-importer-whoop-*` | No direct WHOOP OAuth |
 | YouTube | ActivityWatch buckets containing `youtube` | No browser-history reads |
 | Aqua Voice | exported metadata files | No transcript text or raw audio |
+| Meetily | `/Applications/meetily.app` | Primary meeting recorder when installed |
 | Gog Calendar | `gog status --json` | No event titles/descriptions |
 | Skills | `~/.codex/skills`, `~/.claude/skills`, `~/.gemini/skills` | Names and first heading only |
+
+## Meeting Capture Arbitration
+
+Only one tool should record meeting audio for a given meeting.
+
+| Priority | Tool | Role | Screenpipe audio behavior |
+|---:|---|---|---|
+| 1 | Meetily | primary meeting recorder and meeting note workspace | fallback/context-only |
+| 2 | Aqua Voice | dictation or imported-audio metadata source | fallback-only |
+| 3 | Screenpipe audio | fallback recorder when neither Meetily nor Aqua is active | primary fallback |
+
+Screenpipe remains valuable for screen/UI context, memories, search, and
+timeline recall. It should not also record the same meeting audio while Meetily
+is actively recording that meeting. This avoids duplicate transcripts, double
+storage growth, and conflicting meeting summaries.
 
 ## External Data Routing
 
@@ -145,17 +164,17 @@ Each source should be treated like a bounded subagent lane:
 4. summarize
 5. let only the final publisher write Screenpipe memories
 
-The current lanes are ActivityWatch, WHOOP, YouTube, Aqua Voice, Gog Calendar,
-local skills, Apple Photos strategy, Discord voice strategy, and CMUX manager
-status strategy. A source lane must not receive another lane's raw payload
-unless that is explicitly required.
+The current lanes are ActivityWatch, WHOOP, YouTube, Aqua Voice, Meetily,
+Meeting Capture Policy, Gog Calendar, local skills, Apple Photos strategy,
+Discord voice strategy, and CMUX manager status strategy. A source lane must not
+receive another lane's raw payload unless that is explicitly required.
 
 ## Workflow Ideas
 
 | Idea | Inputs | Output | Why it helps |
 |---|---|---|---|
 | Founder daily operating brief | Screenpipe, ActivityWatch, WHOOP, Gog, CMUX | morning Memory + Obsidian daily note | joins energy, calendar, active projects, and agent status |
-| Meeting intelligence loop | Screenpipe audio, Meetily, Aqua, Discord voice pipeline | meeting summary + CRM follow-up | separates live meeting capture from dictation and Discord calls |
+| Meeting intelligence loop | Meetily, Screenpipe context, Aqua, Discord voice pipeline | meeting summary + CRM follow-up | Meetily records meeting audio once; Screenpipe adds screen/timeline context |
 | Health-aware work blocks | WHOOP, ActivityWatch, Gog | suggested focus/recovery blocks | uses recovery/sleep against real work patterns |
 | Media learning recall | YouTube importer, Screenpipe, Obsidian | watched-topic memory digest | turns passive watching into searchable context |
 | Photos context memory | Apple Photo Sync, local Photos search skill | privacy-safe photo/event memories | adds visual life context without committing photo exports |
@@ -173,6 +192,11 @@ Aqua Voice is useful when its dictation quality is better than Screenpipe's
 default local Whisper path. In this repo it is integrated as a metadata source:
 word counts, recency, duration, model, and mic profile counts. Transcript text
 stays private.
+
+Meetily is installed as the primary meeting-capture app. If Meetily is active
+for a call, Screenpipe audio should stay fallback/context-only for that call.
+If Meetily is not used but Aqua is being used for dictation/import audio,
+Screenpipe audio should still stay fallback-only.
 
 ## Privacy
 
@@ -192,6 +216,7 @@ Local work this project generalizes:
 - OpenClaw skills such as `openclaw-activity-watch` and
   `openclaw-whoop-activitywatch-import`
 - `aqua-voice-exporter`
+- `meetily` / `Zackriya-Solutions/meetily`
 - `discord-voice-obsidian-agent`
 - `gog` / `openclaw/gogcli` for calendar automation
 - `remoun/screenpipe-ui` for CLI/TUI/Web inspection of Screenpipe data

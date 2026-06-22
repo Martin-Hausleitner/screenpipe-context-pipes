@@ -5,6 +5,7 @@ import path from "node:path";
 import test from "node:test";
 
 import { classifyBucket } from "../src/activitywatch.js";
+import { resolveMeetingCapturePolicy } from "../src/meeting-capture.js";
 import { inventorySkills } from "../src/skills.js";
 import { buildSnapshot, memoryPayload, snapshotToMarkdown } from "../src/summarize.js";
 
@@ -68,6 +69,15 @@ test("builds snapshot and memory payload from mocked ActivityWatch", async () =>
       microphoneProfiles: 1,
       pendingTelemetryItems: 0,
     },
+    meetily: {
+      ok: true,
+      installed: true,
+      version: "0.4.0",
+      bundleId: "com.meetily.ai",
+      audioInputPermissionDeclared: true,
+      systemAudioPermissionDeclared: true,
+      dataDirectoryDetected: false,
+    },
     gog: {
       ok: true,
       credentialsConfigured: true,
@@ -80,9 +90,23 @@ test("builds snapshot and memory payload from mocked ActivityWatch", async () =>
   assert.match(markdown, /ActivityWatch Activity/);
   assert.match(markdown, /WHOOP/);
   assert.match(markdown, /Aqua Voice/);
+  assert.match(markdown, /Meetily Meeting Capture/);
   assert.match(markdown, /Gog Calendar/);
   assert.ok(payload.tags.includes("source:whoop"));
   assert.ok(payload.tags.includes("source:aqua"));
+  assert.ok(payload.tags.includes("source:meetily"));
   assert.ok(payload.tags.includes("source:gog-calendar"));
+  assert.ok(payload.tags.includes("policy:single-audio-recorder"));
   assert.ok(payload.tags.includes("pipe:context-hub"));
+});
+
+test("prefers Meetily over Screenpipe audio for meeting capture", () => {
+  const policy = resolveMeetingCapturePolicy({
+    meetily: { ok: true },
+    aqua: { ok: true },
+    screenpipeAudioAvailable: true,
+  });
+  assert.equal(policy.primaryRecorder, "meetily");
+  assert.equal(policy.screenpipeAudioRole, "fallback-and-context-only");
+  assert.equal(policy.duplicateAudioRisk, "low");
 });

@@ -1,6 +1,7 @@
 import { classifyBucket, isInterestingBucket } from "./activitywatch.js";
+import { resolveMeetingCapturePolicy } from "./meeting-capture.js";
 
-export async function buildSnapshot({ awClient, skills = [], aqua = null, gog = null, days = 1, now = new Date() }) {
+export async function buildSnapshot({ awClient, skills = [], aqua = null, meetily = null, gog = null, screenpipeAudioAvailable = true, days = 1, now = new Date() }) {
   const end = now.toISOString();
   const start = new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
   const snapshot = {
@@ -9,7 +10,9 @@ export async function buildSnapshot({ awClient, skills = [], aqua = null, gog = 
     sources: {
       activitywatch: { ok: false, buckets: 0, events: 0, error: null },
       aqua: aqua || { ok: false, configured: false },
+      meetily: meetily || { ok: false, installed: false },
       gog: gog || { ok: false, installed: false },
+      meetingCapture: resolveMeetingCapturePolicy({ meetily, aqua, screenpipeAudioAvailable }),
       skills: { ok: true, count: skills.length },
     },
     activity: [],
@@ -71,7 +74,9 @@ export function snapshotToMarkdown(snapshot) {
     lines.push(`  - Error: ${snapshot.sources.activitywatch.error}`);
   }
   lines.push(`- Aqua Voice export: ${snapshot.sources.aqua.ok ? "ok" : "offline"}`);
+  lines.push(`- Meetily app: ${snapshot.sources.meetily.ok ? "ok" : "offline"}`);
   lines.push(`- Gog Calendar CLI: ${snapshot.sources.gog.ok ? "ok" : "offline"}`);
+  lines.push(`- Meeting capture primary: ${snapshot.sources.meetingCapture.primaryRecorder}`);
   lines.push(`- Skills: ${snapshot.sources.skills.count} discovered`);
   lines.push("");
 
@@ -79,6 +84,7 @@ export function snapshotToMarkdown(snapshot) {
   addWhoop(lines, snapshot.whoop);
   addYoutube(lines, snapshot.youtube);
   addAqua(lines, snapshot.sources.aqua);
+  addMeetily(lines, snapshot.sources.meetily, snapshot.sources.meetingCapture);
   addGog(lines, snapshot.sources.gog);
   addPresence(lines, snapshot.presence);
   addSkills(lines, snapshot.skills);
@@ -90,7 +96,9 @@ export function memoryPayload(snapshot) {
   if (snapshot.whoop.length) tags.push("source:whoop");
   if (snapshot.youtube.length) tags.push("source:youtube");
   if (snapshot.sources.aqua.ok) tags.push("source:aqua");
+  if (snapshot.sources.meetily.ok) tags.push("source:meetily");
   if (snapshot.sources.gog.ok) tags.push("source:gog-calendar");
+  if (snapshot.sources.meetingCapture.ok) tags.push("policy:single-audio-recorder");
   if (snapshot.skills.total) tags.push("source:skills");
   return {
     content: snapshotToMarkdown(snapshot),
@@ -272,6 +280,25 @@ function addAqua(lines, aqua) {
     lines.push(`- Microphone profiles: ${aqua.microphoneProfiles}`);
     lines.push(`- Pending telemetry items: ${aqua.pendingTelemetryItems}`);
   }
+  lines.push("");
+}
+
+function addMeetily(lines, meetily, policy) {
+  lines.push("## Meetily Meeting Capture");
+  if (!meetily?.ok) {
+    lines.push(`- Not available: ${meetily?.error || "not installed"}.`);
+  } else {
+    lines.push(`- Meetily installed: yes${meetily.version ? ` (${meetily.version})` : ""}.`);
+    lines.push(`- Bundle: ${meetily.bundleId || "unknown"}.`);
+    lines.push(`- Microphone permission declared: ${meetily.audioInputPermissionDeclared ? "yes" : "no"}.`);
+    lines.push(`- System audio permission declared: ${meetily.systemAudioPermissionDeclared ? "yes" : "no"}.`);
+    lines.push(`- Local data directory detected: ${meetily.dataDirectoryDetected ? "yes" : "no"}.`);
+  }
+  lines.push(`- Primary meeting recorder: ${policy.primaryRecorder}.`);
+  lines.push(`- Screenpipe audio role: ${policy.screenpipeAudioRole}.`);
+  lines.push(`- Aqua role: ${policy.aquaRole}.`);
+  lines.push(`- Duplicate-audio risk: ${policy.duplicateAudioRisk}.`);
+  lines.push(`- Rule: ${policy.rule}`);
   lines.push("");
 }
 

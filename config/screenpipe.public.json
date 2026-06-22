@@ -6,14 +6,23 @@
     "rawDataIncluded": false,
     "absoluteLocalPathsIncluded": false,
     "tokensIncluded": false,
-    "transcriptsIncluded": false
+    "transcriptsIncluded": false,
+    "meetingAudioRecordingsIncluded": false
+  },
+  "audioCapturePolicy": {
+    "mode": "single-audio-recorder",
+    "priority": ["meetily", "aqua", "screenpipe"],
+    "screenpipeWhenMeetilyActive": "fallback-and-context-only",
+    "screenpipeWhenAquaActive": "fallback-only",
+    "screenpipeWhenNeitherActive": "primary-fallback",
+    "publicTranscriptPolicy": "no transcript text or raw audio in public config"
   },
   "localConnectors": [
     {
       "id": "context-hub",
       "status": "installed-local",
       "purpose": "Summarize local metadata into Screenpipe memories",
-      "sources": ["activitywatch", "whoop", "youtube", "aqua", "gog-calendar", "skills"]
+      "sources": ["activitywatch", "whoop", "youtube", "aqua", "meetily", "meeting-capture-policy", "gog-calendar", "skills"]
     },
     {
       "id": "aw-importer-whoop",
@@ -47,9 +56,9 @@
     },
     {
       "id": "meetily",
-      "status": "recommended-public-repo",
+      "status": "installed-local-app",
       "url": "https://github.com/Zackriya-Solutions/meetily",
-      "purpose": "Self-hosted meeting notes alongside Screenpipe audio and Aqua Voice"
+      "purpose": "Primary local meeting recorder so Screenpipe audio does not duplicate Meetily/Aqua capture"
     },
     {
       "id": "apple-photos-local-search",
@@ -116,6 +125,8 @@
   "recommendations": [
     "Use local capture for Discord/meetings first; use a vcvm bot only as an opt-in fallback.",
     "Keep Aqua Voice raw audio and transcripts local; publish only counts, freshness, duration, and model metadata.",
+    "Use Meetily as the first-choice meeting recorder; keep Screenpipe audio as fallback/context-only when Meetily is active.",
+    "If Aqua is actively used for dictation/import audio, keep Screenpipe audio as fallback-only for that capture path.",
     "Use Gog Calendar as the scheduling source, but keep event titles/descriptions out of public manifests.",
     "Use remoun/screenpipe-ui for terminal-first browsing and health checks over local Screenpipe data.",
     "Keep Obsidian vault details private; publish only the vault label and integration role."

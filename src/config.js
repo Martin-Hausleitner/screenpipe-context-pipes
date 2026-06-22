@@ -7,12 +7,15 @@ export const DEFAULT_CONFIG = {
   screenpipeBaseUrl: "http://127.0.0.1:3030",
   skillRoots: ["~/.codex/skills", "~/.claude/skills", "~/.gemini/skills"],
   aquaExportDir: "~/Documents/AquaVoice_Export",
+  meetilyAppPath: "/Applications/meetily.app",
   gogCommand: "gog",
+  screenpipeAudioAvailable: true,
   privacy: {
     includeUrls: false,
     includeSkillBodies: false,
     includeAquaTranscriptText: false,
     includeCalendarEventText: false,
+    includeMeetingTranscriptText: false,
   },
 };
 

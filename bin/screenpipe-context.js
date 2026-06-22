@@ -3,6 +3,8 @@ import { ActivityWatchClient } from "../src/activitywatch.js";
 import { readAquaExport } from "../src/aqua.js";
 import { parseArgs, loadConfig, numberArg } from "../src/config.js";
 import { readGogStatus } from "../src/gog.js";
+import { resolveMeetingCapturePolicy } from "../src/meeting-capture.js";
+import { readMeetilyStatus } from "../src/meetily.js";
 import { inventorySkills } from "../src/skills.js";
 import { buildSnapshot, memoryPayload, snapshotToMarkdown } from "../src/summarize.js";
 import { ScreenpipeClient } from "../src/screenpipe.js";
@@ -31,7 +33,7 @@ async function doctor(args) {
   const config = loadConfig(args.config);
   const aw = new ActivityWatchClient(args.activitywatchUrl || config.activityWatchBaseUrl);
   const sp = new ScreenpipeClient(args.screenpipeUrl || config.screenpipeBaseUrl);
-  const result = { activitywatch: null, screenpipe: null, aqua: null, gog: null, skills: null };
+  const result = { activitywatch: null, screenpipe: null, aqua: null, meetily: null, gog: null, meetingCapture: null, skills: null };
 
   try {
     result.activitywatch = { ok: true, info: await aw.info() };
@@ -46,7 +48,13 @@ async function doctor(args) {
   }
 
   result.aqua = readAquaExport(args.aquaExportDir || config.aquaExportDir);
+  result.meetily = readMeetilyStatus({ appPath: args.meetilyAppPath || config.meetilyAppPath });
   result.gog = readGogStatus({ command: args.gogCommand || config.gogCommand });
+  result.meetingCapture = resolveMeetingCapturePolicy({
+    meetily: result.meetily,
+    aqua: result.aqua,
+    screenpipeAudioAvailable: config.screenpipeAudioAvailable,
+  });
 
   const skills = inventorySkills(splitList(args.roots) || config.skillRoots, {
     includeBodies: false,
@@ -61,7 +69,9 @@ async function doctor(args) {
   console.log(`ActivityWatch: ${result.activitywatch.ok ? "ok" : `offline (${result.activitywatch.error})`}`);
   console.log(`Screenpipe: ${result.screenpipe.ok ? "ok" : `offline (${result.screenpipe.error})`}`);
   console.log(`Aqua: ${result.aqua.ok ? "ok" : `offline (${result.aqua.error})`}`);
+  console.log(`Meetily: ${result.meetily.ok ? `ok (${result.meetily.version || "unknown"})` : `offline (${result.meetily.error})`}`);
   console.log(`Gog Calendar: ${result.gog.ok ? "ok" : `offline (${result.gog.error})`}`);
+  console.log(`Meeting capture: ${result.meetingCapture.primaryRecorder} (Screenpipe audio: ${result.meetingCapture.screenpipeAudioRole})`);
   console.log(`Skills: ${result.skills.count}`);
 }
 
@@ -75,7 +85,9 @@ async function snapshotCommand(args) {
     awClient: aw,
     skills,
     aqua: readAquaExport(args.aquaExportDir || config.aquaExportDir),
+    meetily: readMeetilyStatus({ appPath: args.meetilyAppPath || config.meetilyAppPath }),
     gog: readGogStatus({ command: args.gogCommand || config.gogCommand }),
+    screenpipeAudioAvailable: config.screenpipeAudioAvailable,
     days: numberArg(args.days, 1),
   });
 
@@ -128,6 +140,7 @@ Options:
   --screenpipe-url URL       Screenpipe API base
   --roots A,B,C              Skill root directories
   --aqua-export-dir PATH     Aqua Voice export directory
+  --meetily-app-path PATH    Meetily.app location
   --gog-command PATH         Gog CLI command
   --write                    Write snapshot as Screenpipe memory
   --format FORMAT            markdown or json
