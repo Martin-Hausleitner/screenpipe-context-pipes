@@ -58,6 +58,20 @@ test("builds snapshot and memory payload from mocked ActivityWatch", async () =>
   };
   const snapshot = await buildSnapshot({
     awClient,
+    aqua: {
+      ok: true,
+      historyCount: 2,
+      latestTimestamp: "2026-01-01T09:00:00Z",
+      totalAudioSeconds: 180,
+      wordCount: 1200,
+      model: "aqua",
+      microphoneProfiles: 1,
+      pendingTelemetryItems: 0,
+    },
+    gog: {
+      ok: true,
+      credentialsConfigured: true,
+    },
     skills: [{ id: "openclaw-activity-watch", title: "ActivityWatch", tags: ["activitywatch"] }],
     now: new Date("2026-01-02T00:00:00Z"),
   });
@@ -65,6 +79,10 @@ test("builds snapshot and memory payload from mocked ActivityWatch", async () =>
   const payload = memoryPayload(snapshot);
   assert.match(markdown, /ActivityWatch Activity/);
   assert.match(markdown, /WHOOP/);
+  assert.match(markdown, /Aqua Voice/);
+  assert.match(markdown, /Gog Calendar/);
   assert.ok(payload.tags.includes("source:whoop"));
+  assert.ok(payload.tags.includes("source:aqua"));
+  assert.ok(payload.tags.includes("source:gog-calendar"));
   assert.ok(payload.tags.includes("pipe:context-hub"));
 });

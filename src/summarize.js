@@ -1,6 +1,6 @@
 import { classifyBucket, isInterestingBucket } from "./activitywatch.js";
 
-export async function buildSnapshot({ awClient, skills = [], days = 1, now = new Date() }) {
+export async function buildSnapshot({ awClient, skills = [], aqua = null, gog = null, days = 1, now = new Date() }) {
   const end = now.toISOString();
   const start = new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
   const snapshot = {
@@ -8,6 +8,8 @@ export async function buildSnapshot({ awClient, skills = [], days = 1, now = new
     range: { start, end, days },
     sources: {
       activitywatch: { ok: false, buckets: 0, events: 0, error: null },
+      aqua: aqua || { ok: false, configured: false },
+      gog: gog || { ok: false, installed: false },
       skills: { ok: true, count: skills.length },
     },
     activity: [],
@@ -68,12 +70,16 @@ export function snapshotToMarkdown(snapshot) {
   if (snapshot.sources.activitywatch.error) {
     lines.push(`  - Error: ${snapshot.sources.activitywatch.error}`);
   }
+  lines.push(`- Aqua Voice export: ${snapshot.sources.aqua.ok ? "ok" : "offline"}`);
+  lines.push(`- Gog Calendar CLI: ${snapshot.sources.gog.ok ? "ok" : "offline"}`);
   lines.push(`- Skills: ${snapshot.sources.skills.count} discovered`);
   lines.push("");
 
   addActivity(lines, snapshot.activity);
   addWhoop(lines, snapshot.whoop);
   addYoutube(lines, snapshot.youtube);
+  addAqua(lines, snapshot.sources.aqua);
+  addGog(lines, snapshot.sources.gog);
   addPresence(lines, snapshot.presence);
   addSkills(lines, snapshot.skills);
   return lines.join("\n");
@@ -83,6 +89,8 @@ export function memoryPayload(snapshot) {
   const tags = ["pipe:context-hub", "source:activitywatch"];
   if (snapshot.whoop.length) tags.push("source:whoop");
   if (snapshot.youtube.length) tags.push("source:youtube");
+  if (snapshot.sources.aqua.ok) tags.push("source:aqua");
+  if (snapshot.sources.gog.ok) tags.push("source:gog-calendar");
   if (snapshot.skills.total) tags.push("source:skills");
   return {
     content: snapshotToMarkdown(snapshot),
@@ -247,6 +255,33 @@ function addPresence(lines, rows) {
       lines.push(`- ${row.bucketId}: ${fmt(row.totalSeconds)}`);
       for (const status of row.statuses) lines.push(`  - ${status.name}: ${fmt(status.seconds)}`);
     }
+  }
+  lines.push("");
+}
+
+function addAqua(lines, aqua) {
+  lines.push("## Aqua Voice");
+  if (!aqua?.ok) {
+    lines.push(`- Not available: ${aqua?.error || "not configured"}.`);
+  } else {
+    lines.push(`- ${aqua.historyCount} recent transcription records indexed without transcript text.`);
+    if (aqua.wordCount !== null) lines.push(`- Lifetime local word count: ${aqua.wordCount}`);
+    if (aqua.totalAudioSeconds) lines.push(`- Recent audio duration: ${fmt(aqua.totalAudioSeconds)}`);
+    if (aqua.latestTimestamp) lines.push(`- Latest record: ${aqua.latestTimestamp}`);
+    if (aqua.model) lines.push(`- Transcription model: ${aqua.model}`);
+    lines.push(`- Microphone profiles: ${aqua.microphoneProfiles}`);
+    lines.push(`- Pending telemetry items: ${aqua.pendingTelemetryItems}`);
+  }
+  lines.push("");
+}
+
+function addGog(lines, gog) {
+  lines.push("## Gog Calendar");
+  if (!gog?.ok) {
+    lines.push(`- Not available: ${gog?.error || "gog is not installed"}.`);
+  } else {
+    lines.push(`- Gog CLI available with credentials configured: ${gog.credentialsConfigured ? "yes" : "no"}.`);
+    lines.push("- Calendar event titles/descriptions are not included in this public-safe digest.");
   }
   lines.push("");
 }

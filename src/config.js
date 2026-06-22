@@ -6,9 +6,13 @@ export const DEFAULT_CONFIG = {
   activityWatchBaseUrl: "http://127.0.0.1:5600/api/0",
   screenpipeBaseUrl: "http://127.0.0.1:3030",
   skillRoots: ["~/.codex/skills", "~/.claude/skills", "~/.gemini/skills"],
+  aquaExportDir: "~/Documents/AquaVoice_Export",
+  gogCommand: "gog",
   privacy: {
     includeUrls: false,
     includeSkillBodies: false,
+    includeAquaTranscriptText: false,
+    includeCalendarEventText: false,
   },
 };
 

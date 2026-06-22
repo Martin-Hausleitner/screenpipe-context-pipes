@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "profile": "martin-public-screenpipe-config",
+  "privacy": {
+    "manifestType": "derived-public-config",
+    "rawDataIncluded": false,
+    "absoluteLocalPathsIncluded": false,
+    "tokensIncluded": false,
+    "transcriptsIncluded": false
+  },
+  "localConnectors": [
+    {
+      "id": "context-hub",
+      "status": "installed-local",
+      "purpose": "Summarize local metadata into Screenpipe memories",
+      "sources": ["activitywatch", "whoop", "youtube", "aqua", "gog-calendar", "skills"]
+    },
+    {
+      "id": "aw-importer-whoop",
+      "status": "linked-public-repo",
+      "url": "https://github.com/Martin-Hausleitner/aw-importer-whoop",
+      "purpose": "Import WHOOP health data into ActivityWatch buckets"
+    },
+    {
+      "id": "aw-importer-youtube",
+      "status": "linked-public-repo",
+      "url": "https://github.com/Martin-Hausleitner/aw-importer-youtube",
+      "purpose": "Import YouTube watch sessions into ActivityWatch buckets"
+    },
+    {
+      "id": "aw-importer-apple-screentime",
+      "status": "linked-public-repo",
+      "url": "https://github.com/Martin-Hausleitner/aw-importer-apple-screentime",
+      "purpose": "Import Apple Screen Time into ActivityWatch-style data"
+    },
+    {
+      "id": "aqua-voice-exporter",
+      "status": "linked-public-repo",
+      "url": "https://github.com/Martin-Hausleitner/aqua-voice-exporter",
+      "purpose": "Summarize Aqua Voice export metadata without transcript text"
+    },
+    {
+      "id": "discord-voice-obsidian-agent",
+      "status": "linked-public-repo",
+      "url": "https://github.com/Martin-Hausleitner/discord-voice-obsidian-agent",
+      "purpose": "Discord voice recording and Obsidian meeting-note pipeline"
+    },
+    {
+      "id": "meetily",
+      "status": "recommended-public-repo",
+      "url": "https://github.com/Zackriya-Solutions/meetily",
+      "purpose": "Self-hosted meeting notes alongside Screenpipe audio and Aqua Voice"
+    },
+    {
+      "id": "apple-photos-local-search",
+      "status": "local-skill-strategy",
+      "purpose": "Read-only local Apple Photos search for future photo memory enrichment"
+    },
+    {
+      "id": "cmux-agent-status",
+      "status": "local-manager-strategy",
+      "purpose": "Summarize manager/agent status into Screenpipe memories without raw logs"
+    },
+    {
+      "id": "screenpipe-ui",
+      "status": "linked-public-repo",
+      "url": "https://github.com/remoun/screenpipe-ui",
+      "purpose": "Alternative CLI/TUI/Web UI over local Screenpipe data"
+    }
+  ],
+  "screenpipeStorePipes": [
+    {
+      "slug": "digital-clone",
+      "title": "Digital Clone",
+      "category": "other",
+      "installCountObserved": 15445,
+      "status": "installed-via-local-api"
+    },
+    {
+      "slug": "meeting-intel",
+      "title": "Meeting Intelligence",
+      "category": "productivity",
+      "installCountObserved": 235,
+      "status": "installed-via-local-api"
+    },
+    {
+      "slug": "obsidian-daily-summary",
+      "title": "Obsidian Daily Summary",
+      "category": "productivity",
+      "installCountObserved": 853,
+      "status": "installed-via-local-api",
+      "connections": ["obsidian"]
+    },
+    {
+      "slug": "personal-crm",
+      "title": "Personal CRM",
+      "category": "productivity",
+      "installCountObserved": 610,
+      "status": "installed-via-local-api"
+    },
+    {
+      "slug": "apple-photo-sync",
+      "title": "Apple Photo Sync",
+      "category": "other",
+      "installCountObserved": 36,
+      "status": "installed-via-local-api"
+    },
+    {
+      "slug": "voice-memos-sync",
+      "title": "Voice Memos Sync",
+      "category": "productivity",
+      "installCountObserved": 51,
+      "status": "installed-via-local-api"
+    }
+  ],
+  "recommendations": [
+    "Use local capture for Discord/meetings first; use a vcvm bot only as an opt-in fallback.",
+    "Keep Aqua Voice raw audio and transcripts local; publish only counts, freshness, duration, and model metadata.",
+    "Use Gog Calendar as the scheduling source, but keep event titles/descriptions out of public manifests.",
+    "Use remoun/screenpipe-ui for terminal-first browsing and health checks over local Screenpipe data.",
+    "Keep Obsidian vault details private; publish only the vault label and integration role."
+  ]
+}

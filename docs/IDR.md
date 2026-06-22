@@ -5,7 +5,8 @@
 Build a Screenpipe pipe plus local connector CLI that turns existing local
 metadata systems into Screenpipe memories. The first supported sources are
 ActivityWatch, WHOOP data imported into ActivityWatch, YouTube watch-session
-imports, and local agent skill inventories.
+imports, Aqua Voice export metadata, Gog Calendar readiness, and local agent
+skill inventories.
 
 ## Context
 
@@ -25,6 +26,8 @@ creates durable, searchable Screenpipe memories from already-local metadata.
 - Writes to Screenpipe must require an explicit `--write`.
 - WHOOP OAuth and export downloading stay in the existing WHOOP importer.
 - ActivityWatch remains source of truth for time-series metadata.
+- Aqua Voice transcript text and raw audio are not exported into public config.
+- Calendar event titles and descriptions are not exported into public config.
 
 ## Design
 
@@ -40,7 +43,8 @@ creates durable, searchable Screenpipe memories from already-local metadata.
 
 4. `src/summarize.js`
    Converts buckets/events into compact summaries:
-   app buckets, WHOOP buckets, YouTube sessions, presence/status buckets.
+   app buckets, WHOOP buckets, YouTube sessions, Aqua metadata, Gog readiness,
+   presence/status buckets.
 
 5. `src/screenpipe.js`
    Optional memory writer using `POST /memories`.
@@ -61,12 +65,93 @@ Screenpipe memories are tagged:
 
 The memory content is a compact Markdown digest, not raw event dumps.
 
+## Public Configuration Contract
+
+Decision:
+Publish a redacted, derived config manifest instead of the user's raw
+Screenpipe configuration.
+
+Allowed:
+
+- source type names
+- Store pipe slugs
+- redaction policy names
+- capability flags
+- coarse health status
+- dry-run/write mode
+
+Disallowed:
+
+- secrets
+- absolute local paths
+- raw source payloads
+- private skill bodies
+- stable private IDs
+- Aqua transcript text
+- Calendar event text
+
+## External-Data-Routing Design
+
+Design:
+Represent each input as a source-specific lane that can be assigned to a
+bounded subagent.
+
+Each lane:
+
+- has one source responsibility
+- emits a normalized summary
+- drops private fields before handoff
+- cannot mutate other sources' raw data
+
+The final publisher is the only component that can write Screenpipe memories.
+Default mode stays dry-run; writes remain explicit.
+
+Current lanes:
+
+- ActivityWatch lane for app/window and presence summaries.
+- WHOOP lane for imported health bucket summaries.
+- YouTube lane for watch-session summaries.
+- Aqua lane for dictation metadata without transcript text.
+- Gog Calendar lane for CLI readiness and future schedule summaries without
+  event text.
+- Skills lane for names, headings, and capability tags only.
+- Discord voice lane for local-first meeting capture strategy.
+- CMUX manager lane for future agent-status summaries.
+
+## Discord / Voice Integration
+
+Decision:
+Support two modes only.
+
+1. Local recording
+
+- default
+- botless
+- captures microphone and system audio on the user's machine
+- best match for Screenpipe's local-first model
+
+2. vcvm bot
+
+- fallback only
+- opt-in
+- private-network/authenticated transport only
+- channel/server allowlist
+- transcript-first, raw-audio-minimal
+
+Rationale:
+Local recording is the safest and most consistent with the existing botless
+meeting model. vcvm bot mode is for headless or managed environments, not for
+default consumer use.
+
 ## Non-Goals
 
 - Directly writing rows into Screenpipe SQLite tables.
 - Importing raw WHOOP OAuth data.
 - Reading browser history.
 - Publishing private ActivityWatch/WHOOP exports.
+- Publishing Aqua transcript text or raw audio.
+- Publishing calendar event text.
+- Default Discord bot deployment.
 - Replacing existing AW importers.
 
 ## Validation
