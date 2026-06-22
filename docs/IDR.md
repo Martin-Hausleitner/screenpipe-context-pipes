@@ -6,7 +6,8 @@ Build a Screenpipe pipe plus local connector CLI that turns existing local
 metadata systems into Screenpipe memories. The first supported sources are
 ActivityWatch, WHOOP data imported into ActivityWatch, YouTube watch-session
 imports, Aqua Voice export metadata, Meetily meeting-capture status, Gog
-Calendar readiness, and local agent skill inventories.
+Calendar readiness, browser-private/Cognitor privacy policy, and local agent
+skill inventories.
 
 ## Context
 
@@ -31,6 +32,7 @@ creates durable, searchable Screenpipe memories from already-local metadata.
   config.
 - Calendar event titles and descriptions are not exported into public config.
 - Only one meeting-audio recorder should be active for a meeting.
+- Cognitor/private browser sessions must not produce Context Hub memories.
 
 ## Design
 
@@ -47,12 +49,18 @@ creates durable, searchable Screenpipe memories from already-local metadata.
 4. `src/summarize.js`
    Converts buckets/events into compact summaries:
    app buckets, WHOOP buckets, YouTube sessions, Aqua metadata, Meetily status,
-   meeting-capture policy, Gog readiness, presence/status buckets.
+   meeting-capture policy, browser privacy policy, Gog readiness,
+   presence/status buckets.
 
-5. `src/screenpipe.js`
+5. `src/browser-privacy.js`
+   Detects Cognitor/private browser window markers from ActivityWatch
+   current-window metadata. Matching browser events are dropped and memory
+   writes are blocked.
+
+6. `src/screenpipe.js`
    Optional memory writer using `POST /memories`.
 
-6. `src/skills.js`
+7. `src/skills.js`
    Inventories local skills by folder name and first heading without copying
    full private skill content.
 
@@ -68,6 +76,8 @@ Screenpipe memories are tagged:
 - `source:gog-calendar`
 - `source:skills`
 - `policy:single-audio-recorder`
+- `policy:private-browser-kill-switch`
+- `privacy:write-blocked`
 - `pipe:context-hub`
 
 The memory content is a compact Markdown digest, not raw event dumps.
@@ -97,6 +107,35 @@ Disallowed:
 - Aqua transcript text
 - Meetily transcript text and raw recordings
 - Calendar event text
+- Cognitor/private browser events and browser history
+
+## Browser Private Mode / Cognitor Policy
+
+Decision:
+Treat Cognitor launcher sessions and browser private modes as a memory-write
+kill switch for the Context Hub.
+
+Signals:
+
+- `Cognitor`
+- `CloakBrowser`
+- `Incognito`
+- `InPrivate`
+- `Private Browsing`
+- `Private Window`
+
+Behavior:
+
+1. Drop matching browser events before summary generation.
+2. Add `policy:private-browser-kill-switch` to normal payloads.
+3. Add `privacy:write-blocked` when a private/Cognitor signal appears.
+4. Skip `--write` instead of calling the Screenpipe `/memories` API.
+5. Recommend Screenpipe daemon hardening with ignored-window flags and disabled
+   clipboard/keyboard capture.
+
+Rationale:
+Private browser use is a stronger boundary than ordinary redaction. A compact
+summary is still a derived record, so the safe behavior is to not write one.
 
 ## Meeting Capture Arbitration
 
@@ -116,6 +155,12 @@ final compact digest. It must not intentionally duplicate Meetily/Aqua audio
 for the same meeting. The connector records this as a policy signal rather than
 mutating daemon audio settings because Screenpipe exposes audio devices through
 CLI commands but not a safe per-meeting audio toggle through pipes.
+
+Local Mac operationalization:
+The main Screenpipe LaunchAgent runs with audio disabled. Separate local
+extra-audio launch scripts must stop/skip when Meetily, Aqua Voice, or Cognitor
+is running, so the single-recorder policy is enforced outside the pipe prompt
+as well.
 
 ## External-Data-Routing Design
 
@@ -141,6 +186,7 @@ Current lanes:
 - Aqua lane for dictation metadata without transcript text.
 - Meetily lane for app install/status and meeting-capture readiness only.
 - Meeting Capture Policy lane for single-recorder arbitration.
+- Browser Privacy Policy lane for Cognitor/private-mode kill-switch handling.
 - Gog Calendar lane for CLI readiness and future schedule summaries without
   event text.
 - Skills lane for names, headings, and capability tags only.
@@ -182,6 +228,7 @@ default consumer use.
 - Publishing Meetily transcript text or raw recordings.
 - Publishing calendar event text.
 - Running multiple meeting recorders for the same call by default.
+- Writing Context Hub memories during Cognitor/private browser mode.
 - Default Discord bot deployment.
 - Replacing existing AW importers.
 

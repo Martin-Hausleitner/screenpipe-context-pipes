@@ -1,7 +1,22 @@
 import { classifyBucket, isInterestingBucket } from "./activitywatch.js";
+import {
+  DEFAULT_BROWSER_PRIVACY_POLICY,
+  filterPrivateBrowserEvents,
+  resolveBrowserPrivacyPolicy,
+} from "./browser-privacy.js";
 import { resolveMeetingCapturePolicy } from "./meeting-capture.js";
 
-export async function buildSnapshot({ awClient, skills = [], aqua = null, meetily = null, gog = null, screenpipeAudioAvailable = true, days = 1, now = new Date() }) {
+export async function buildSnapshot({
+  awClient,
+  skills = [],
+  aqua = null,
+  meetily = null,
+  gog = null,
+  screenpipeAudioAvailable = true,
+  browserPrivacyPolicy = DEFAULT_BROWSER_PRIVACY_POLICY,
+  days = 1,
+  now = new Date(),
+}) {
   const end = now.toISOString();
   const start = new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
   const snapshot = {
@@ -13,6 +28,7 @@ export async function buildSnapshot({ awClient, skills = [], aqua = null, meetil
       meetily: meetily || { ok: false, installed: false },
       gog: gog || { ok: false, installed: false },
       meetingCapture: resolveMeetingCapturePolicy({ meetily, aqua, screenpipeAudioAvailable }),
+      browserPrivacy: resolveBrowserPrivacyPolicy({ policy: browserPrivacyPolicy }),
       skills: { ok: true, count: skills.length },
     },
     activity: [],
@@ -46,12 +62,22 @@ export async function buildSnapshot({ awClient, skills = [], aqua = null, meetil
     }
     snapshot.sources.activitywatch.events += events.length;
     const kind = classifyBucket(bucketId, bucket);
-    if (kind === "whoop") snapshot.whoop.push(summarizeWhoopBucket(bucketId, events));
-    else if (kind === "youtube") snapshot.youtube.push(summarizeYoutubeBucket(bucketId, events));
-    else if (kind === "presence") snapshot.presence.push(summarizePresenceBucket(bucketId, events));
-    else if (kind === "afk") snapshot.afk.push(summarizeGenericBucket(bucketId, events));
-    else if (kind === "activity") snapshot.activity.push(summarizeActivityBucket(bucketId, events));
+    if (kind === "activity") {
+      snapshot.sources.browserPrivacy = resolveBrowserPrivacyPolicy({
+        events: [...events, ...(snapshot.sources.browserPrivacy._events || [])],
+        policy: browserPrivacyPolicy,
+      });
+      snapshot.sources.browserPrivacy._events = [...events, ...(snapshot.sources.browserPrivacy._events || [])];
+    }
+
+    const publicEvents = filterPrivateBrowserEvents(events, browserPrivacyPolicy);
+    if (kind === "whoop") snapshot.whoop.push(summarizeWhoopBucket(bucketId, publicEvents));
+    else if (kind === "youtube") snapshot.youtube.push(summarizeYoutubeBucket(bucketId, publicEvents));
+    else if (kind === "presence") snapshot.presence.push(summarizePresenceBucket(bucketId, publicEvents));
+    else if (kind === "afk") snapshot.afk.push(summarizeGenericBucket(bucketId, publicEvents));
+    else if (kind === "activity") snapshot.activity.push(summarizeActivityBucket(bucketId, publicEvents));
   }
+  delete snapshot.sources.browserPrivacy._events;
 
   snapshot.activity.sort((a, b) => b.totalSeconds - a.totalSeconds);
   snapshot.whoop.sort((a, b) => a.bucketId.localeCompare(b.bucketId));
@@ -77,6 +103,7 @@ export function snapshotToMarkdown(snapshot) {
   lines.push(`- Meetily app: ${snapshot.sources.meetily.ok ? "ok" : "offline"}`);
   lines.push(`- Gog Calendar CLI: ${snapshot.sources.gog.ok ? "ok" : "offline"}`);
   lines.push(`- Meeting capture primary: ${snapshot.sources.meetingCapture.primaryRecorder}`);
+  lines.push(`- Private browser policy: ${snapshot.sources.browserPrivacy.writeAction}`);
   lines.push(`- Skills: ${snapshot.sources.skills.count} discovered`);
   lines.push("");
 
@@ -85,6 +112,7 @@ export function snapshotToMarkdown(snapshot) {
   addYoutube(lines, snapshot.youtube);
   addAqua(lines, snapshot.sources.aqua);
   addMeetily(lines, snapshot.sources.meetily, snapshot.sources.meetingCapture);
+  addBrowserPrivacy(lines, snapshot.sources.browserPrivacy);
   addGog(lines, snapshot.sources.gog);
   addPresence(lines, snapshot.presence);
   addSkills(lines, snapshot.skills);
@@ -99,6 +127,8 @@ export function memoryPayload(snapshot) {
   if (snapshot.sources.meetily.ok) tags.push("source:meetily");
   if (snapshot.sources.gog.ok) tags.push("source:gog-calendar");
   if (snapshot.sources.meetingCapture.ok) tags.push("policy:single-audio-recorder");
+  if (snapshot.sources.browserPrivacy.ok) tags.push("policy:private-browser-kill-switch");
+  if (!snapshot.sources.browserPrivacy.shouldWriteMemory) tags.push("privacy:write-blocked");
   if (snapshot.skills.total) tags.push("source:skills");
   return {
     content: snapshotToMarkdown(snapshot),
@@ -110,6 +140,10 @@ export function memoryPayload(snapshot) {
     }),
     tags,
     importance: 0.65,
+    writeBlocked: !snapshot.sources.browserPrivacy.shouldWriteMemory,
+    writeBlockReason: snapshot.sources.browserPrivacy.shouldWriteMemory
+      ? null
+      : snapshot.sources.browserPrivacy.rule,
   };
 }
 
@@ -298,6 +332,22 @@ function addMeetily(lines, meetily, policy) {
   lines.push(`- Screenpipe audio role: ${policy.screenpipeAudioRole}.`);
   lines.push(`- Aqua role: ${policy.aquaRole}.`);
   lines.push(`- Duplicate-audio risk: ${policy.duplicateAudioRisk}.`);
+  lines.push(`- Rule: ${policy.rule}`);
+  lines.push("");
+}
+
+function addBrowserPrivacy(lines, policy) {
+  lines.push("## Private Browser Policy");
+  lines.push(`- Mode: ${policy.mode}.`);
+  lines.push(`- Status: ${policy.active ? "active, memory writes blocked" : "clear"}.`);
+  lines.push(`- Private/Cognitor events observed: ${policy.matchedEventCount}.`);
+  if (policy.latestPrivateEventTimestamp) {
+    lines.push(`- Latest private-mode signal: ${policy.latestPrivateEventTimestamp}.`);
+  }
+  lines.push(`- Event handling: ${policy.privateEventHandling}.`);
+  lines.push(`- Memory write action: ${policy.writeAction}.`);
+  lines.push("- Screenpipe launch hardening:");
+  for (const flag of policy.screenpipeRecordFlags) lines.push(`  - ${flag}`);
   lines.push(`- Rule: ${policy.rule}`);
   lines.push("");
 }

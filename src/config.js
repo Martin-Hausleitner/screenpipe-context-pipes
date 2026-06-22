@@ -10,12 +10,16 @@ export const DEFAULT_CONFIG = {
   meetilyAppPath: "/Applications/meetily.app",
   gogCommand: "gog",
   screenpipeAudioAvailable: true,
+  browserPrivacyPolicy: {
+    enabled: true,
+  },
   privacy: {
     includeUrls: false,
     includeSkillBodies: false,
     includeAquaTranscriptText: false,
     includeCalendarEventText: false,
     includeMeetingTranscriptText: false,
+    blockMemoryWritesInPrivateBrowserMode: true,
   },
 };
 
@@ -36,6 +40,10 @@ export function loadConfig(configPath) {
 function mergeConfig(base, override) {
   const out = { ...base, ...override };
   out.privacy = { ...base.privacy, ...(override.privacy || {}) };
+  out.browserPrivacyPolicy = {
+    ...base.browserPrivacyPolicy,
+    ...(override.browserPrivacyPolicy || {}),
+  };
   out.skillRoots = override.skillRoots || base.skillRoots;
   return out;
 }

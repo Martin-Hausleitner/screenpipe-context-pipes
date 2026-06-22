@@ -7,7 +7,8 @@
     "absoluteLocalPathsIncluded": false,
     "tokensIncluded": false,
     "transcriptsIncluded": false,
-    "meetingAudioRecordingsIncluded": false
+    "meetingAudioRecordingsIncluded": false,
+    "browserPrivateModeWritesAllowed": false
   },
   "audioCapturePolicy": {
     "mode": "single-audio-recorder",
@@ -17,12 +18,28 @@
     "screenpipeWhenNeitherActive": "primary-fallback",
     "publicTranscriptPolicy": "no transcript text or raw audio in public config"
   },
+  "browserPrivacyPolicy": {
+    "mode": "private-browser-kill-switch",
+    "signals": ["cognitor", "cloakbrowser", "incognito", "inprivate", "private browsing", "private window"],
+    "privateEventHandling": "drop-private-browser-events",
+    "memoryWritesWhenPrivate": "blocked",
+    "screenpipeRecordHardening": [
+      "--ignored-windows ::Incognito",
+      "--ignored-windows ::InPrivate",
+      "--ignored-windows ::Private Browsing",
+      "--ignored-windows ::Private Window",
+      "--ignored-windows ::Cognitor",
+      "--ignored-windows CloakBrowser::",
+      "--disable-clipboard-capture",
+      "--disable-keyboard-capture"
+    ]
+  },
   "localConnectors": [
     {
       "id": "context-hub",
       "status": "installed-local",
       "purpose": "Summarize local metadata into Screenpipe memories",
-      "sources": ["activitywatch", "whoop", "youtube", "aqua", "meetily", "meeting-capture-policy", "gog-calendar", "skills"]
+      "sources": ["activitywatch", "whoop", "youtube", "aqua", "meetily", "meeting-capture-policy", "browser-privacy-policy", "gog-calendar", "skills"]
     },
     {
       "id": "aw-importer-whoop",
@@ -127,6 +144,7 @@
     "Keep Aqua Voice raw audio and transcripts local; publish only counts, freshness, duration, and model metadata.",
     "Use Meetily as the first-choice meeting recorder; keep Screenpipe audio as fallback/context-only when Meetily is active.",
     "If Aqua is actively used for dictation/import audio, keep Screenpipe audio as fallback-only for that capture path.",
+    "Treat Cognitor/private browser sessions as a kill switch: drop private-window events and block Context Hub memory writes.",
     "Use Gog Calendar as the scheduling source, but keep event titles/descriptions out of public manifests.",
     "Use remoun/screenpipe-ui for terminal-first browsing and health checks over local Screenpipe data.",
     "Keep Obsidian vault details private; publish only the vault label and integration role."

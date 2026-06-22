@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { ActivityWatchClient } from "../src/activitywatch.js";
 import { readAquaExport } from "../src/aqua.js";
+import { resolveBrowserPrivacyPolicy } from "../src/browser-privacy.js";
 import { parseArgs, loadConfig, numberArg } from "../src/config.js";
 import { readGogStatus } from "../src/gog.js";
 import { resolveMeetingCapturePolicy } from "../src/meeting-capture.js";
@@ -33,7 +34,16 @@ async function doctor(args) {
   const config = loadConfig(args.config);
   const aw = new ActivityWatchClient(args.activitywatchUrl || config.activityWatchBaseUrl);
   const sp = new ScreenpipeClient(args.screenpipeUrl || config.screenpipeBaseUrl);
-  const result = { activitywatch: null, screenpipe: null, aqua: null, meetily: null, gog: null, meetingCapture: null, skills: null };
+  const result = {
+    activitywatch: null,
+    screenpipe: null,
+    aqua: null,
+    meetily: null,
+    gog: null,
+    meetingCapture: null,
+    browserPrivacy: null,
+    skills: null,
+  };
 
   try {
     result.activitywatch = { ok: true, info: await aw.info() };
@@ -55,6 +65,7 @@ async function doctor(args) {
     aqua: result.aqua,
     screenpipeAudioAvailable: config.screenpipeAudioAvailable,
   });
+  result.browserPrivacy = resolveBrowserPrivacyPolicy();
 
   const skills = inventorySkills(splitList(args.roots) || config.skillRoots, {
     includeBodies: false,
@@ -72,6 +83,7 @@ async function doctor(args) {
   console.log(`Meetily: ${result.meetily.ok ? `ok (${result.meetily.version || "unknown"})` : `offline (${result.meetily.error})`}`);
   console.log(`Gog Calendar: ${result.gog.ok ? "ok" : `offline (${result.gog.error})`}`);
   console.log(`Meeting capture: ${result.meetingCapture.primaryRecorder} (Screenpipe audio: ${result.meetingCapture.screenpipeAudioRole})`);
+  console.log(`Private browser policy: ${result.browserPrivacy.mode} (${result.browserPrivacy.writeAction})`);
   console.log(`Skills: ${result.skills.count}`);
 }
 
@@ -99,6 +111,10 @@ async function snapshotCommand(args) {
   }
 
   if (args.write) {
+    if (payload.writeBlocked) {
+      console.error(`Skipped Screenpipe memory write: ${payload.writeBlockReason}`);
+      return;
+    }
     const sp = new ScreenpipeClient(args.screenpipeUrl || config.screenpipeBaseUrl);
     const created = await sp.createMemory(payload);
     console.error(`Wrote Screenpipe memory: ${JSON.stringify(created)}`);

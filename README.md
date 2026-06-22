@@ -3,7 +3,9 @@
 Local-first Screenpipe pipes and connector scripts for turning metadata from
 ActivityWatch, WHOOP imports, YouTube watch sessions, Aqua Voice exports,
 Meetily meeting-capture status, Gog Calendar status, local agent skills, and
-selected Screenpipe Store pipes into durable Screenpipe context.
+selected Screenpipe Store pipes into durable Screenpipe context. Browser private
+mode and Cognitor launcher sessions are treated as a kill switch for memory
+writes.
 
 The project is intentionally conservative:
 
@@ -13,6 +15,7 @@ The project is intentionally conservative:
 - detects Meetily as the primary local meeting recorder when installed
 - applies a single-audio-recorder policy before recommending Screenpipe audio
 - detects Gog Calendar CLI readiness without event title/description text
+- blocks Context Hub memory writes when Cognitor/private browser mode is seen
 - inventories local agent skills without copying private skill bodies by default
 - writes only compact summaries to Screenpipe memories, and only with `--write`
 - defaults to `--dry-run`
@@ -47,6 +50,7 @@ not a dump of the local `~/.screenpipe` folder.
 | Gog Calendar | local CLI | <https://github.com/openclaw/gogcli> | readiness only; event text stays private |
 | Discord voice | linked pipeline | <https://github.com/Martin-Hausleitner/discord-voice-obsidian-agent> | local-first recording; bot mode opt-in only |
 | Meetily | installed local app | <https://github.com/Zackriya-Solutions/meetily> | primary meeting recorder; no transcript text in public config |
+| Cognitor/private browser | local privacy policy | `policy:private-browser-kill-switch` | block writes and drop matching browser events |
 | Apple Photos local search | local skill strategy | Apple Photos local library | read-only search/OCR, no exports by default |
 | CMUX manager status | local manager strategy | `cmux-agent-status.py` | summarize state, no raw terminal logs |
 | Screenpipe UI | linked UI | <https://github.com/remoun/screenpipe-ui> | terminal/Web browsing over local API |
@@ -83,6 +87,20 @@ curl -X POST http://127.0.0.1:3030/pipes/store/install \
 The built-in local templates already present here are `meeting-summary`,
 `standup-update`, `day-recap`, `ai-habits`, `time-breakdown`, and
 `video-export`.
+
+## Pipe Matrix
+
+| Pipe / lane | Source | Writes memories | Privacy guard | Stack role |
+|---|---|---:|---|---|
+| Context Hub | ActivityWatch, WHOOP, YouTube, Aqua, Meetily, Gog, skills | opt-in / scheduled | blocks on Cognitor/private browser signal | central metadata bridge |
+| Browser Privacy Policy | ActivityWatch current-window metadata | no | drops private browser events and sets `privacy:write-blocked` | kill switch for private browsing |
+| Meeting Capture Policy | Meetily, Aqua, Screenpipe runtime status | no | single-audio-recorder arbitration | prevents duplicate meeting audio |
+| Digital Clone | Screenpipe memories | yes | depends on upstream memory filters | durable user/profile memory |
+| Meeting Intelligence | Screenpipe meeting/audio/screen context | yes | should not process Cognitor/private windows; Meetily owns meeting audio | meeting summaries and follow-ups |
+| Obsidian Daily Summary | Screenpipe daily context | yes | consumes only filtered memories | daily note export |
+| Personal CRM | Screenpipe memories and conversations | yes | consumes only filtered memories | relationship recall |
+| Apple Photo Sync | Apple Photos | yes | local-only, no public exports | visual context enrichment |
+| Voice Memos Sync | iCloud Voice Memos | yes | local indexed source; no public raw audio | imported voice notes |
 
 ## Quick Start
 
@@ -136,6 +154,7 @@ screenpipe-context skills --roots ~/.codex/skills,~/.claude/skills
 | YouTube | ActivityWatch buckets containing `youtube` | No browser-history reads |
 | Aqua Voice | exported metadata files | No transcript text or raw audio |
 | Meetily | `/Applications/meetily.app` | Primary meeting recorder when installed |
+| Browser Privacy Policy | ActivityWatch current-window events | Blocks writes on Cognitor/private browser signal |
 | Gog Calendar | `gog status --json` | No event titles/descriptions |
 | Skills | `~/.codex/skills`, `~/.claude/skills`, `~/.gemini/skills` | Names and first heading only |
 
@@ -154,6 +173,28 @@ timeline recall. It should not also record the same meeting audio while Meetily
 is actively recording that meeting. This avoids duplicate transcripts, double
 storage growth, and conflicting meeting summaries.
 
+On this Mac the main Screenpipe LaunchAgent runs with `--disable-audio`; the
+separate local extra-audio LaunchAgents are guarded so they skip/stop while
+Meetily, Aqua Voice, or Cognitor is running.
+
+## Browser Private Mode Policy
+
+Cognitor launcher sessions and browser private modes are treated as a local
+privacy boundary. When an ActivityWatch current-window event indicates
+`Cognitor`, `Incognito`, `InPrivate`, `Private Browsing`, `Private Window`, or
+`CloakBrowser`, the connector:
+
+1. drops matching browser events before summarization
+2. sets `privacy:write-blocked`
+3. skips `--write` calls to Screenpipe memories
+4. reports the Screenpipe record hardening flags that should be used on daemon
+   start, including `--ignored-windows ::Incognito`,
+   `--ignored-windows ::Private Browsing`, `--ignored-windows ::Cognitor`,
+   `--disable-clipboard-capture`, and `--disable-keyboard-capture`
+
+This policy is deliberately conservative: any private/Cognitor signal inside
+the snapshot range blocks the Context Hub memory write for that run.
+
 ## External Data Routing
 
 Each source should be treated like a bounded subagent lane:
@@ -165,9 +206,10 @@ Each source should be treated like a bounded subagent lane:
 5. let only the final publisher write Screenpipe memories
 
 The current lanes are ActivityWatch, WHOOP, YouTube, Aqua Voice, Meetily,
-Meeting Capture Policy, Gog Calendar, local skills, Apple Photos strategy,
-Discord voice strategy, and CMUX manager status strategy. A source lane must not
-receive another lane's raw payload unless that is explicitly required.
+Meeting Capture Policy, Browser Privacy Policy, Gog Calendar, local skills,
+Apple Photos strategy, Discord voice strategy, and CMUX manager status strategy.
+A source lane must not receive another lane's raw payload unless that is
+explicitly required.
 
 ## Workflow Ideas
 

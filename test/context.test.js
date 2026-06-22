@@ -5,6 +5,7 @@ import path from "node:path";
 import test from "node:test";
 
 import { classifyBucket } from "../src/activitywatch.js";
+import { resolveBrowserPrivacyPolicy } from "../src/browser-privacy.js";
 import { resolveMeetingCapturePolicy } from "../src/meeting-capture.js";
 import { inventorySkills } from "../src/skills.js";
 import { buildSnapshot, memoryPayload, snapshotToMarkdown } from "../src/summarize.js";
@@ -91,13 +92,16 @@ test("builds snapshot and memory payload from mocked ActivityWatch", async () =>
   assert.match(markdown, /WHOOP/);
   assert.match(markdown, /Aqua Voice/);
   assert.match(markdown, /Meetily Meeting Capture/);
+  assert.match(markdown, /Private Browser Policy/);
   assert.match(markdown, /Gog Calendar/);
   assert.ok(payload.tags.includes("source:whoop"));
   assert.ok(payload.tags.includes("source:aqua"));
   assert.ok(payload.tags.includes("source:meetily"));
   assert.ok(payload.tags.includes("source:gog-calendar"));
   assert.ok(payload.tags.includes("policy:single-audio-recorder"));
+  assert.ok(payload.tags.includes("policy:private-browser-kill-switch"));
   assert.ok(payload.tags.includes("pipe:context-hub"));
+  assert.equal(payload.writeBlocked, false);
 });
 
 test("prefers Meetily over Screenpipe audio for meeting capture", () => {
@@ -109,4 +113,52 @@ test("prefers Meetily over Screenpipe audio for meeting capture", () => {
   assert.equal(policy.primaryRecorder, "meetily");
   assert.equal(policy.screenpipeAudioRole, "fallback-and-context-only");
   assert.equal(policy.duplicateAudioRisk, "low");
+});
+
+test("blocks memory writes and drops browser activity when Cognitor private mode is detected", async () => {
+  const awClient = {
+    async buckets() {
+      return {
+        "aw-watcher-window_test": { type: "currentwindow" },
+      };
+    },
+    async events() {
+      return [
+        {
+          timestamp: "2026-01-01T10:00:00Z",
+          duration: 60,
+          data: { app: "Chromium", title: "Cognitor private browser session" },
+        },
+        {
+          timestamp: "2026-01-01T10:01:00Z",
+          duration: 120,
+          data: { app: "Codex", title: "screenpipe-context-pipes" },
+        },
+      ];
+    },
+  };
+  const snapshot = await buildSnapshot({
+    awClient,
+    now: new Date("2026-01-02T00:00:00Z"),
+  });
+  const markdown = snapshotToMarkdown(snapshot);
+  const payload = memoryPayload(snapshot);
+  assert.equal(snapshot.sources.browserPrivacy.active, true);
+  assert.equal(payload.writeBlocked, true);
+  assert.ok(payload.tags.includes("privacy:write-blocked"));
+  assert.match(markdown, /memory writes blocked/);
+  assert.equal(snapshot.activity[0].top.some((row) => row.name === "Chromium"), false);
+});
+
+test("private browser policy detects common browser private markers", () => {
+  const policy = resolveBrowserPrivacyPolicy({
+    events: [
+      {
+        timestamp: "2026-01-01T10:00:00Z",
+        data: { app: "Google Chrome", title: "New Incognito Tab" },
+      },
+    ],
+  });
+  assert.equal(policy.active, true);
+  assert.equal(policy.writeAction, "block-memory-write");
 });

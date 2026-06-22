@@ -8,6 +8,13 @@
   ],
   "privacy": {
     "includeUrls": false,
-    "includeSkillBodies": false
+    "includeSkillBodies": false,
+    "includeAquaTranscriptText": false,
+    "includeCalendarEventText": false,
+    "includeMeetingTranscriptText": false,
+    "blockMemoryWritesInPrivateBrowserMode": true
+  },
+  "browserPrivacyPolicy": {
+    "enabled": true
   }
 }
