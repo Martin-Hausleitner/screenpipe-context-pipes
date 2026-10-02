@@ -1,0 +1,79 @@
+{
+  "generated_at": "2026-06-22T21:16:26.278883+00:00",
+  "audio_db": "/Users/mh/.screenpipe-audio-system/db.sqlite",
+  "screen_db": "/Users/mh/.screenpipe/db.sqlite",
+  "endpoint": "http://127.0.0.1:8767",
+  "dry_run": true,
+  "start_time": "2026-06-22T20:58:30+00:00",
+  "end_time": "2026-06-22T20:59:20+00:00",
+  "limit": 4,
+  "newest_first": false,
+  "processed": 4,
+  "status_counts": {
+    "would_transcribe": 4
+  },
+  "discord_detected": true,
+  "speaker_note": "System Audio does not expose Discord speaker identity; speaker needs working diarization, Discord voice events, or per-speaker bot capture.",
+  "results": [
+    {
+      "chunk_id": 7802,
+      "timestamp": "2026-06-22T20:58:34+00:00",
+      "file_exists": true,
+      "status": "would_transcribe",
+      "source_app": "Discord",
+      "source_window": "Super Secret Shit (SSS) | servas.ai - Discord",
+      "source_confidence": 0.85,
+      "source_delta_seconds": 27.0,
+      "source_reason": "preferred_discord_frame",
+      "speaker": null,
+      "speaker_source": "not_available_from_system_audio_without_diarization_or_discord_voice_events",
+      "transcription_text_length": 100,
+      "elapsed_seconds": 7.306
+    },
+    {
+      "chunk_id": 7803,
+      "timestamp": "2026-06-22T20:58:39+00:00",
+      "file_exists": true,
+      "status": "would_transcribe",
+      "source_app": "Discord",
+      "source_window": "Super Secret Shit (SSS) | servas.ai - Discord",
+      "source_confidence": 0.85,
+      "source_delta_seconds": 22.0,
+      "source_reason": "preferred_discord_frame",
+      "speaker": null,
+      "speaker_source": "not_available_from_system_audio_without_diarization_or_discord_voice_events",
+      "transcription_text_length": 100,
+      "elapsed_seconds": 2.538
+    },
+    {
+      "chunk_id": 7804,
+      "timestamp": "2026-06-22T20:58:44+00:00",
+      "file_exists": true,
+      "status": "would_transcribe",
+      "source_app": "Discord",
+      "source_window": "Super Secret Shit (SSS) | servas.ai - Discord",
+      "source_confidence": 0.858,
+      "source_delta_seconds": 17.0,
+      "source_reason": "preferred_discord_frame",
+      "speaker": null,
+      "speaker_source": "not_available_from_system_audio_without_diarization_or_discord_voice_events",
+      "transcription_text_length": 100,
+      "elapsed_seconds": 1.942
+    },
+    {
+      "chunk_id": 7805,
+      "timestamp": "2026-06-22T20:58:49+00:00",
+      "file_exists": true,
+      "status": "would_transcribe",
+      "source_app": "Discord",
+      "source_window": "Super Secret Shit (SSS) | servas.ai - Discord",
+      "source_confidence": 0.9,
+      "source_delta_seconds": 12.0,
+      "source_reason": "preferred_discord_frame",
+      "speaker": null,
+      "speaker_source": "not_available_from_system_audio_without_diarization_or_discord_voice_events",
+      "transcription_text_length": 100,
+      "elapsed_seconds": 2.1
+    }
+  ]
+}

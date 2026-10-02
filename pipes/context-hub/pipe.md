@@ -46,14 +46,14 @@ memory using the Screenpipe `/memories` API with tags:
 - `source:skills` when skill inventory appears
 
 Do not save raw events, full URLs, private journal text, OAuth credentials,
-calendar event titles/descriptions, Aqua transcript text, Meetily transcript
-text/raw recordings, browser history rows, or sensitive personal content. Save
-only the summary:
+calendar event titles/descriptions, Aqua raw audio or audio file paths, Meetily
+transcript text/raw recordings, browser history rows, or sensitive personal
+content. Save only the summary:
 
 - top app/activity categories
 - WHOOP recovery/sleep/workout highlights
 - YouTube/session-level learning or media context
-- Aqua Voice counts, freshness, duration, and transcription model metadata
+- Aqua Voice transcript excerpts, counts, freshness, duration, and transcription model metadata
 - Meetily install status and single-audio-recorder policy
 - Private Browser Policy status, only when it is clear; if blocked, do not write
 - Gog Calendar availability/freshness, without event text

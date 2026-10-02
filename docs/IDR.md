@@ -5,7 +5,7 @@
 Build a Screenpipe pipe plus local connector CLI that turns existing local
 metadata systems into Screenpipe memories. The first supported sources are
 ActivityWatch, WHOOP data imported into ActivityWatch, YouTube watch-session
-imports, Aqua Voice export metadata, Meetily meeting-capture status, Gog
+imports, Aqua Voice export metadata and transcript text, Meetily meeting-capture status, Gog
 Calendar readiness, browser-private/Cognitor privacy policy, and local agent
 skill inventories.
 
@@ -27,6 +27,8 @@ creates durable, searchable Screenpipe memories from already-local metadata.
 - Writes to Screenpipe must require an explicit `--write`.
 - WHOOP OAuth and export downloading stay in the existing WHOOP importer.
 - ActivityWatch remains source of truth for time-series metadata.
+- Aqua Voice transcript text is exported only through the local/private connector;
+  raw audio and audio paths are not exported.
 - Aqua Voice transcript text and raw audio are not exported into public config.
 - Meetily transcript text and raw recordings are not exported into public
   config.
@@ -48,7 +50,7 @@ creates durable, searchable Screenpipe memories from already-local metadata.
 
 4. `src/summarize.js`
    Converts buckets/events into compact summaries:
-   app buckets, WHOOP buckets, YouTube sessions, Aqua metadata, Meetily status,
+   app buckets, WHOOP buckets, YouTube sessions, Aqua transcripts and metadata, Meetily status,
    meeting-capture policy, browser privacy policy, Gog readiness,
    presence/status buckets.
 
@@ -104,7 +106,7 @@ Disallowed:
 - raw source payloads
 - private skill bodies
 - stable private IDs
-- Aqua transcript text
+- Aqua transcript text in public manifests or repository fixtures
 - Meetily transcript text and raw recordings
 - Calendar event text
 - Cognitor/private browser events and browser history
@@ -183,7 +185,8 @@ Current lanes:
 - ActivityWatch lane for app/window and presence summaries.
 - WHOOP lane for imported health bucket summaries.
 - YouTube lane for watch-session summaries.
-- Aqua lane for dictation metadata without transcript text.
+- Aqua lane for dictation transcript text plus metadata, excluding raw audio and
+  Aqua audio file paths.
 - Meetily lane for app install/status and meeting-capture readiness only.
 - Meeting Capture Policy lane for single-recorder arbitration.
 - Browser Privacy Policy lane for Cognitor/private-mode kill-switch handling.
@@ -224,7 +227,7 @@ default consumer use.
 - Importing raw WHOOP OAuth data.
 - Reading browser history.
 - Publishing private ActivityWatch/WHOOP exports.
-- Publishing Aqua transcript text or raw audio.
+- Publishing Aqua transcript text to the public repo or publishing raw audio.
 - Publishing Meetily transcript text or raw recordings.
 - Publishing calendar event text.
 - Running multiple meeting recorders for the same call by default.

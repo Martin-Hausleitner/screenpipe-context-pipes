@@ -1,0 +1,158 @@
+{
+  "generatedAt": "2026-06-22T10:53:56.747Z",
+  "durationMs": 3047,
+  "screenpipeBin": "/Users/mh/.local/bin/screenpipe",
+  "uiUrl": "http://127.0.0.1:5174",
+  "checks": {
+    "pipes": {
+      "total": 13,
+      "required": {
+        "context-hub": {
+          "id": "context-hub",
+          "enabled": true,
+          "schedule": "0 */2 * * *",
+          "lastRun": "never"
+        },
+        "day-recap": {
+          "id": "day-recap",
+          "enabled": true,
+          "schedule": "manual",
+          "lastRun": "never"
+        },
+        "obsidian-daily-summary": {
+          "id": "obsidian-daily-summary",
+          "enabled": true,
+          "schedule": "every 1h",
+          "lastRun": "never"
+        },
+        "meeting-intel": {
+          "id": "meeting-intel",
+          "enabled": true,
+          "schedule": "every 1h",
+          "lastRun": "never"
+        },
+        "voice-memos-sync": {
+          "id": "voice-memos-sync",
+          "enabled": true,
+          "schedule": "every 2h",
+          "lastRun": "never"
+        },
+        "personal-crm": {
+          "id": "personal-crm",
+          "enabled": true,
+          "schedule": "every 3h",
+          "lastRun": "never"
+        },
+        "digital-clone": {
+          "id": "digital-clone",
+          "enabled": true,
+          "schedule": "every 4h",
+          "lastRun": "never"
+        }
+      }
+    },
+    "obsidian": {
+      "connected": true,
+      "testMessage": "ok: vault found (1 top-level notes)",
+      "vaultPath": "/Users/mh/Documents/Martin",
+      "dailyNoteFolder": "Daily",
+      "cliHasVaultPath": true
+    },
+    "screenpipeApi": {
+      "ok": true,
+      "authorizedSearch": true,
+      "sampleCount": 1
+    },
+    "webProxy": {
+      "ok": true,
+      "sampleCount": 1
+    },
+    "contextHub": {
+      "activitywatchOk": true,
+      "activitywatchBuckets": 30,
+      "activitywatchEvents": 1937,
+      "aquaOk": true,
+      "aquaTranscriptsIncluded": true,
+      "aquaTranscriptCount": 86,
+      "aquaTranscriptTextChars": 102079,
+      "meetilyOk": true,
+      "meetilyVersion": "0.4.0",
+      "gogOk": true,
+      "skillsCount": 1541,
+      "skillTagCount": 8,
+      "sourceCounts": {
+        "activity": 1,
+        "whoop": 5,
+        "youtube": 1,
+        "presence": 3,
+        "afk": 2
+      },
+      "memoryTags": [
+        "pipe:context-hub",
+        "source:activitywatch",
+        "source:whoop",
+        "source:youtube",
+        "source:aqua",
+        "source:meetily",
+        "source:gog-calendar",
+        "policy:single-audio-recorder",
+        "policy:private-browser-kill-switch",
+        "privacy:write-blocked",
+        "source:skills"
+      ],
+      "writeBlocked": true,
+      "writeBlockReason": "Private/Cognitor browser mode was detected in the snapshot range; do not save Screenpipe memories and drop matching browser events."
+    },
+    "meetingPolicy": {
+      "ok": true,
+      "primaryRecorder": "meetily",
+      "screenpipeAudioRole": "fallback-and-context-only",
+      "aquaRole": "dictation-metadata-only",
+      "duplicateAudioRisk": "low",
+      "rule": "Use Meetily for meeting recording; do not start Screenpipe meeting audio for the same meeting unless Meetily is unavailable."
+    },
+    "browserPrivacy": {
+      "ok": true,
+      "mode": "private-browser-kill-switch",
+      "active": false,
+      "shouldWriteMemory": true,
+      "writeAction": "allow-memory-write",
+      "privateEventHandling": "drop-private-browser-events",
+      "matchedEventCount": 0,
+      "latestPrivateEventTimestamp": null,
+      "launchers": [
+        "cognitor"
+      ],
+      "screenpipeRecordFlags": [
+        "--ignored-windows ::Incognito",
+        "--ignored-windows ::InPrivate",
+        "--ignored-windows ::Private Browsing",
+        "--ignored-windows ::Private Window",
+        "--ignored-windows ::Cognitor",
+        "--ignored-windows CloakBrowser::",
+        "--disable-clipboard-capture",
+        "--disable-keyboard-capture"
+      ],
+      "rule": "No private/Cognitor browser event was detected; normal redacted summaries may be written."
+    }
+  },
+  "timingsMs": {
+    "screenpipeAuthToken": 32,
+    "pipeList": 26,
+    "obsidianGet": 29,
+    "obsidianTest": 29,
+    "obsidianApi": 41,
+    "screenpipeHealth": 3,
+    "screenpipeSearch": 6,
+    "webProxy": 5,
+    "contextSnapshot": 1849
+  },
+  "failures": [],
+  "ok": true,
+  "privacy": {
+    "privateContentStored": false,
+    "transcriptTextStored": false,
+    "urlsStored": false,
+    "rawAudioPathsStored": false
+  }
+}

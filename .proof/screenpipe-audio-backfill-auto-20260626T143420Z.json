@@ -1,0 +1,79 @@
+{
+  "generated_at": "2026-06-26T14:34:20.399144+00:00",
+  "audio_db": "/Users/mh/.screenpipe-audio-system/db.sqlite",
+  "screen_db": "/Users/mh/.screenpipe/db.sqlite",
+  "endpoint": "http://127.0.0.1:8767",
+  "dry_run": false,
+  "start_time": "2026-06-26T14:14:20+00:00",
+  "end_time": null,
+  "limit": 24,
+  "newest_first": true,
+  "processed": 4,
+  "status_counts": {
+    "silent": 4
+  },
+  "discord_detected": false,
+  "speaker_note": "System Audio does not expose Discord speaker identity; speaker needs working diarization, Discord voice events, or per-speaker bot capture.",
+  "results": [
+    {
+      "chunk_id": 9739,
+      "timestamp": "2026-06-26T14:34:12+00:00",
+      "file_exists": true,
+      "status": "silent",
+      "source_app": "Opera",
+      "source_window": null,
+      "source_confidence": 0.85,
+      "source_delta_seconds": 18.0,
+      "source_reason": "nearest_screen_frame",
+      "speaker": null,
+      "speaker_source": "not_available_from_system_audio_without_diarization_or_discord_voice_events",
+      "audio_max_level": 0.0,
+      "silence_threshold": 0.0005
+    },
+    {
+      "chunk_id": 9738,
+      "timestamp": "2026-06-26T14:34:11+00:00",
+      "file_exists": true,
+      "status": "silent",
+      "source_app": "Opera",
+      "source_window": null,
+      "source_confidence": 0.858,
+      "source_delta_seconds": 17.0,
+      "source_reason": "nearest_screen_frame",
+      "speaker": null,
+      "speaker_source": "not_available_from_system_audio_without_diarization_or_discord_voice_events",
+      "audio_max_level": 0.0,
+      "silence_threshold": 0.0005
+    },
+    {
+      "chunk_id": 9329,
+      "timestamp": "2026-06-26T14:17:08+00:00",
+      "file_exists": true,
+      "status": "silent",
+      "source_app": "Opera",
+      "source_window": null,
+      "source_confidence": 0.942,
+      "source_delta_seconds": 7.0,
+      "source_reason": "nearest_screen_frame",
+      "speaker": null,
+      "speaker_source": "not_available_from_system_audio_without_diarization_or_discord_voice_events",
+      "audio_max_level": 0.0,
+      "silence_threshold": 0.0005
+    },
+    {
+      "chunk_id": 9328,
+      "timestamp": "2026-06-26T14:17:07+00:00",
+      "file_exists": true,
+      "status": "silent",
+      "source_app": "Opera",
+      "source_window": null,
+      "source_confidence": 0.95,
+      "source_delta_seconds": 6.0,
+      "source_reason": "nearest_screen_frame",
+      "speaker": null,
+      "speaker_source": "not_available_from_system_audio_without_diarization_or_discord_voice_events",
+      "audio_max_level": 0.0,
+      "silence_threshold": 0.0005
+    }
+  ]
+}

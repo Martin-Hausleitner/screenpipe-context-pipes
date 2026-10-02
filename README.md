@@ -11,7 +11,7 @@ The project is intentionally conservative:
 
 - reads ActivityWatch via the local API when available
 - detects WHOOP / YouTube / presence buckets by bucket id and event shape
-- summarizes Aqua Voice export metadata without transcript text
+- summarizes Aqua Voice export metadata and local transcript text
 - detects Meetily as the primary local meeting recorder when installed
 - applies a single-audio-recorder policy before recommending Screenpipe audio
 - detects Gog Calendar CLI readiness without event title/description text
@@ -28,7 +28,7 @@ that lets Screenpipe centralize high-signal metadata those tools already know:
 - app/window time summaries
 - WHOOP sleep, recovery, strain, workouts, cycles, and journal markers
 - YouTube watch-session summaries
-- Aqua Voice dictation counts, audio duration, freshness, and model metadata
+- Aqua Voice dictation transcript text, counts, audio duration, freshness, and model metadata
 - Meetily install status and meeting-capture role
 - Gog Calendar CLI readiness for future schedule-aware summaries
 - local skill names and capability tags
@@ -46,7 +46,7 @@ not a dump of the local `~/.screenpipe` folder.
 | WHOOP | linked importer | <https://github.com/Martin-Hausleitner/aw-importer-whoop> | ActivityWatch bucket summaries only |
 | YouTube | linked importer | <https://github.com/Martin-Hausleitner/aw-importer-youtube> | session summaries only, no browser history |
 | Apple Screen Time | linked importer | <https://github.com/Martin-Hausleitner/aw-importer-apple-screentime> | aggregate app-time source |
-| Aqua Voice | linked exporter | <https://github.com/Martin-Hausleitner/aqua-voice-exporter> | counts/freshness only, no transcript text |
+| Aqua Voice | linked exporter | <https://github.com/Martin-Hausleitner/aqua-voice-exporter> | local transcript text allowed; no raw audio or audio paths |
 | Gog Calendar | local CLI | <https://github.com/openclaw/gogcli> | readiness only; event text stays private |
 | Discord voice | linked pipeline | <https://github.com/Martin-Hausleitner/discord-voice-obsidian-agent> | local-first recording; bot mode opt-in only |
 | Meetily | installed local app | <https://github.com/Zackriya-Solutions/meetily> | primary meeting recorder; no transcript text in public config |
@@ -58,9 +58,10 @@ not a dump of the local `~/.screenpipe` folder.
 
 Public fields are limited to source categories, capability flags, redaction
 policy names, Store slugs, install status, and coarse health metadata. Never
-publish tokens, API keys, OAuth secrets, stable private IDs, raw transcripts,
+publish tokens, API keys, OAuth secrets, stable private IDs, raw audio,
 raw exports, full skill bodies, calendar event text, browser history, or local
-absolute paths.
+absolute paths. Aqua transcript text is a local/private connector output, not a
+public manifest payload.
 
 ## Screenpipe Store Pipes
 
@@ -152,7 +153,7 @@ screenpipe-context skills --roots ~/.codex/skills,~/.claude/skills
 | Screenpipe API | `http://127.0.0.1:3030` | Memories write target |
 | WHOOP | ActivityWatch buckets `aw-importer-whoop-*` | No direct WHOOP OAuth |
 | YouTube | ActivityWatch buckets containing `youtube` | No browser-history reads |
-| Aqua Voice | exported metadata files | No transcript text or raw audio |
+| Aqua Voice | exported metadata files | Transcript text exported locally; no raw audio or audio paths |
 | Meetily | `/Applications/meetily.app` | Primary meeting recorder when installed |
 | Browser Privacy Policy | ActivityWatch current-window events | Blocks writes on Cognitor/private browser signal |
 | Gog Calendar | `gog status --json` | No event titles/descriptions |
@@ -231,9 +232,10 @@ server/channel allowlists, authenticated transport, transcript-first output,
 and no raw audio retention unless enabled.
 
 Aqua Voice is useful when its dictation quality is better than Screenpipe's
-default local Whisper path. In this repo it is integrated as a metadata source:
-word counts, recency, duration, model, and mic profile counts. Transcript text
-stays private.
+default local Whisper path. In this repo it is integrated as a local transcript
+and metadata source: transcript text, word counts, recency, duration, model, and
+mic profile counts are available to the connector. Raw audio and Aqua audio file
+paths are not exported.
 
 Meetily is installed as the primary meeting-capture app. If Meetily is active
 for a call, Screenpipe audio should stay fallback/context-only for that call.

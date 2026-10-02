@@ -1,0 +1,16 @@
+{
+  "generated_at": "2026-06-26T13:45:41.048193+00:00",
+  "audio_db": "/Users/mh/.screenpipe-audio-system/db.sqlite",
+  "screen_db": "/Users/mh/.screenpipe/db.sqlite",
+  "endpoint": "http://127.0.0.1:8767",
+  "dry_run": false,
+  "start_time": "2026-06-26T13:25:40+00:00",
+  "end_time": null,
+  "limit": 24,
+  "newest_first": true,
+  "processed": 0,
+  "status_counts": {},
+  "discord_detected": false,
+  "speaker_note": "System Audio does not expose Discord speaker identity; speaker needs working diarization, Discord voice events, or per-speaker bot capture.",
+  "results": []
+}
