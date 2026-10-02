@@ -57,7 +57,7 @@ async function doctor(args) {
     result.screenpipe = { ok: false, error: err.message };
   }
 
-  result.aqua = readAquaExport(args.aquaExportDir || config.aquaExportDir);
+  result.aqua = readAquaExport(args.aquaExportDir || config.aquaExportDir, aquaOptions(config));
   result.meetily = readMeetilyStatus({ appPath: args.meetilyAppPath || config.meetilyAppPath });
   result.gog = readGogStatus({ command: args.gogCommand || config.gogCommand });
   result.meetingCapture = resolveMeetingCapturePolicy({
@@ -96,7 +96,7 @@ async function snapshotCommand(args) {
   const snapshot = await buildSnapshot({
     awClient: aw,
     skills,
-    aqua: readAquaExport(args.aquaExportDir || config.aquaExportDir),
+    aqua: readAquaExport(args.aquaExportDir || config.aquaExportDir, aquaOptions(config)),
     meetily: readMeetilyStatus({ appPath: args.meetilyAppPath || config.meetilyAppPath }),
     gog: readGogStatus({ command: args.gogCommand || config.gogCommand }),
     screenpipeAudioAvailable: config.screenpipeAudioAvailable,
@@ -140,6 +140,14 @@ function splitList(value) {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function aquaOptions(config) {
+  return {
+    includeTranscriptText: Boolean(config.privacy.includeAquaTranscriptText),
+    transcriptLimit: config.privacy.aquaTranscriptLimit,
+    transcriptMaxChars: config.privacy.aquaTranscriptMaxChars,
+  };
 }
 
 function printHelp() {

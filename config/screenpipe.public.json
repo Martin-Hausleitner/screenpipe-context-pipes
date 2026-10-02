@@ -7,6 +7,7 @@
     "absoluteLocalPathsIncluded": false,
     "tokensIncluded": false,
     "transcriptsIncluded": false,
+    "localAquaTranscriptExportSupported": true,
     "meetingAudioRecordingsIncluded": false,
     "browserPrivateModeWritesAllowed": false
   },
@@ -63,7 +64,7 @@
       "id": "aqua-voice-exporter",
       "status": "linked-public-repo",
       "url": "https://github.com/Martin-Hausleitner/aqua-voice-exporter",
-      "purpose": "Summarize Aqua Voice export metadata without transcript text"
+      "purpose": "Export Aqua Voice transcript text locally while excluding raw audio and audio paths from public config"
     },
     {
       "id": "discord-voice-obsidian-agent",
@@ -141,7 +142,7 @@
   ],
   "recommendations": [
     "Use local capture for Discord/meetings first; use a vcvm bot only as an opt-in fallback.",
-    "Keep Aqua Voice raw audio and transcripts local; publish only counts, freshness, duration, and model metadata.",
+    "Keep Aqua Voice raw audio and transcripts local; publish public manifests without transcript text, raw audio, or audio paths.",
     "Use Meetily as the first-choice meeting recorder; keep Screenpipe audio as fallback/context-only when Meetily is active.",
     "If Aqua is actively used for dictation/import audio, keep Screenpipe audio as fallback-only for that capture path.",
     "Treat Cognitor/private browser sessions as a kill switch: drop private-window events and block Context Hub memory writes.",

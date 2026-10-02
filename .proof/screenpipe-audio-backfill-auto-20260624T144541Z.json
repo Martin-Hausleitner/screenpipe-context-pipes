@@ -1,0 +1,64 @@
+{
+  "generated_at": "2026-06-24T14:45:47.461712+00:00",
+  "audio_db": "/Users/mh/.screenpipe-audio-system/db.sqlite",
+  "screen_db": "/Users/mh/.screenpipe/db.sqlite",
+  "endpoint": "http://127.0.0.1:8767",
+  "dry_run": false,
+  "start_time": "2026-06-24T14:25:43+00:00",
+  "end_time": null,
+  "limit": 24,
+  "newest_first": true,
+  "processed": 3,
+  "status_counts": {
+    "silent": 3
+  },
+  "discord_detected": true,
+  "speaker_note": "System Audio does not expose Discord speaker identity; speaker needs working diarization, Discord voice events, or per-speaker bot capture.",
+  "results": [
+    {
+      "chunk_id": 39991,
+      "timestamp": "2026-06-24T14:45:34+00:00",
+      "file_exists": true,
+      "status": "silent",
+      "source_app": "Discord",
+      "source_window": "Super Secret Shit (SSS) | servas.ai - Discord",
+      "source_confidence": 0.858,
+      "source_delta_seconds": 17.0,
+      "source_reason": "preferred_discord_frame",
+      "speaker": null,
+      "speaker_source": "not_available_from_system_audio_without_diarization_or_discord_voice_events",
+      "audio_max_level": 0.0,
+      "silence_threshold": 0.0005
+    },
+    {
+      "chunk_id": 39990,
+      "timestamp": "2026-06-24T14:45:29+00:00",
+      "file_exists": true,
+      "status": "silent",
+      "source_app": "Discord",
+      "source_window": "Super Secret Shit (SSS) | servas.ai - Discord",
+      "source_confidence": 0.9,
+      "source_delta_seconds": 12.0,
+      "source_reason": "preferred_discord_frame",
+      "speaker": null,
+      "speaker_source": "not_available_from_system_audio_without_diarization_or_discord_voice_events",
+      "audio_max_level": 0.0,
+      "silence_threshold": 0.0005
+    },
+    {
+      "chunk_id": 39989,
+      "timestamp": "2026-06-24T14:45:24+00:00",
+      "file_exists": true,
+      "status": "silent",
+      "source_app": "Discord",
+      "source_window": "Super Secret Shit (SSS) | servas.ai - Discord",
+      "source_confidence": 0.942,
+      "source_delta_seconds": 7.0,
+      "source_reason": "preferred_discord_frame",
+      "speaker": null,
+      "speaker_source": "not_available_from_system_audio_without_diarization_or_discord_voice_events",
+      "audio_max_level": 0.0,
+      "silence_threshold": 0.0005
+    }
+  ]
+}

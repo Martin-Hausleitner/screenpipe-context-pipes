@@ -5,6 +5,7 @@ import path from "node:path";
 import test from "node:test";
 
 import { classifyBucket } from "../src/activitywatch.js";
+import { readAquaExport } from "../src/aqua.js";
 import { resolveBrowserPrivacyPolicy } from "../src/browser-privacy.js";
 import { resolveMeetingCapturePolicy } from "../src/meeting-capture.js";
 import { inventorySkills } from "../src/skills.js";
@@ -32,6 +33,37 @@ test("inventories skills without bodies by default", () => {
   assert.ok(skills[0].tags.includes("whoop"));
   assert.ok(skills[0].tags.includes("activitywatch"));
   assert.equal(skills[0].body, undefined);
+});
+
+test("exports Aqua transcript text without raw audio paths", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "screenpipe-context-aqua-"));
+  fs.writeFileSync(
+    path.join(root, "history_full.json"),
+    JSON.stringify([
+      {
+        kind: "transcription",
+        timestamp: "2026-01-02T10:00:00Z",
+        content: "Clean transcript text",
+        rawText: "clean transcript text",
+        sessionId: 42,
+        audioFilePath: "audio/private.wav",
+        audioDurationSeconds: 4.2,
+      },
+    ]),
+  );
+  fs.writeFileSync(path.join(root, "config_full.json"), JSON.stringify({ wordCount: 3 }));
+  fs.writeFileSync(path.join(root, "mic_timings.json"), JSON.stringify({ default: [] }));
+  fs.writeFileSync(path.join(root, "session_outcome_v2_outbox.json"), JSON.stringify([]));
+
+  const aqua = readAquaExport(root, { includeTranscriptText: true });
+  assert.equal(aqua.ok, true);
+  assert.equal(aqua.historyCount, 1);
+  assert.equal(aqua.transcriptsIncluded, true);
+  assert.equal(aqua.transcriptCount, 1);
+  assert.equal(aqua.transcripts[0].text, "Clean transcript text");
+  assert.equal(aqua.transcripts[0].audioDurationSeconds, 4.2);
+  assert.equal(Object.hasOwn(aqua.transcripts[0], "audioFilePath"), false);
+  assert.equal(JSON.stringify(aqua).includes("private.wav"), false);
 });
 
 test("builds snapshot and memory payload from mocked ActivityWatch", async () => {
@@ -69,6 +101,16 @@ test("builds snapshot and memory payload from mocked ActivityWatch", async () =>
       model: "aqua",
       microphoneProfiles: 1,
       pendingTelemetryItems: 0,
+      transcriptsIncluded: true,
+      transcriptCount: 1,
+      transcriptTextChars: 22,
+      transcripts: [
+        {
+          timestamp: "2026-01-01T09:00:00Z",
+          text: "Aqua exported transcript",
+          audioDurationSeconds: 10,
+        },
+      ],
     },
     meetily: {
       ok: true,
@@ -91,6 +133,8 @@ test("builds snapshot and memory payload from mocked ActivityWatch", async () =>
   assert.match(markdown, /ActivityWatch Activity/);
   assert.match(markdown, /WHOOP/);
   assert.match(markdown, /Aqua Voice/);
+  assert.match(markdown, /Aqua exported transcript/);
+  assert.match(markdown, /Raw audio files and Aqua audio paths are excluded/);
   assert.match(markdown, /Meetily Meeting Capture/);
   assert.match(markdown, /Private Browser Policy/);
   assert.match(markdown, /Gog Calendar/);

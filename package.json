@@ -9,6 +9,7 @@
   "scripts": {
     "doctor": "node bin/screenpipe-context.js doctor",
     "snapshot": "node bin/screenpipe-context.js snapshot --dry-run",
+    "validate:local": "node bin/validate-local.js",
     "test": "node --test"
   },
   "keywords": [

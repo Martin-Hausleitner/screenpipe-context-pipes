@@ -16,7 +16,9 @@ export const DEFAULT_CONFIG = {
   privacy: {
     includeUrls: false,
     includeSkillBodies: false,
-    includeAquaTranscriptText: false,
+    includeAquaTranscriptText: true,
+    aquaTranscriptLimit: 100,
+    aquaTranscriptMaxChars: 12000,
     includeCalendarEventText: false,
     includeMeetingTranscriptText: false,
     blockMemoryWritesInPrivateBrowserMode: true,

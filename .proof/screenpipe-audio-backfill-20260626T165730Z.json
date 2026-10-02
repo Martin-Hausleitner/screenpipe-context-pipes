@@ -1,0 +1,34 @@
+{
+  "generated_at": "2026-06-26T16:57:30.476782+00:00",
+  "audio_db": "/Users/mh/.screenpipe-audio-system/db.sqlite",
+  "screen_db": "/Users/mh/.screenpipe/db.sqlite",
+  "endpoint": "http://127.0.0.1:8767",
+  "dry_run": false,
+  "start_time": "2026-06-26T13:57:30+00:00",
+  "end_time": null,
+  "limit": 1,
+  "newest_first": false,
+  "processed": 1,
+  "status_counts": {
+    "silent": 1
+  },
+  "discord_detected": false,
+  "speaker_note": "System Audio does not expose Discord speaker identity; speaker needs working diarization, Discord voice events, or per-speaker bot capture.",
+  "results": [
+    {
+      "chunk_id": 8999,
+      "timestamp": "2026-06-26T14:03:25+00:00",
+      "file_exists": true,
+      "status": "silent",
+      "source_app": "cmux",
+      "source_window": "🎛️ Controller — Manager/Codex (pinned)",
+      "source_confidence": 1.0,
+      "source_delta_seconds": 0.0,
+      "source_reason": "nearest_screen_frame",
+      "speaker": null,
+      "speaker_source": "not_available_from_system_audio_without_diarization_or_discord_voice_events",
+      "audio_max_level": 0.0,
+      "silence_threshold": 0.0005
+    }
+  ]
+}

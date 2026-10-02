@@ -306,13 +306,26 @@ function addAqua(lines, aqua) {
   if (!aqua?.ok) {
     lines.push(`- Not available: ${aqua?.error || "not configured"}.`);
   } else {
-    lines.push(`- ${aqua.historyCount} recent transcription records indexed without transcript text.`);
+    const transcriptState = aqua.transcriptsIncluded
+      ? `${aqua.transcriptCount} with local transcript text`
+      : "none with transcript text";
+    lines.push(`- ${aqua.historyCount} recent transcription records indexed; ${transcriptState}.`);
+    lines.push("- Raw audio files and Aqua audio paths are excluded.");
     if (aqua.wordCount !== null) lines.push(`- Lifetime local word count: ${aqua.wordCount}`);
     if (aqua.totalAudioSeconds) lines.push(`- Recent audio duration: ${fmt(aqua.totalAudioSeconds)}`);
+    if (aqua.transcriptTextChars) lines.push(`- Exported transcript text: ${aqua.transcriptTextChars} characters`);
     if (aqua.latestTimestamp) lines.push(`- Latest record: ${aqua.latestTimestamp}`);
     if (aqua.model) lines.push(`- Transcription model: ${aqua.model}`);
     lines.push(`- Microphone profiles: ${aqua.microphoneProfiles}`);
     lines.push(`- Pending telemetry items: ${aqua.pendingTelemetryItems}`);
+    if (aqua.transcriptsIncluded) {
+      lines.push("- Recent transcript excerpts:");
+      for (const item of aqua.transcripts.slice(0, 5)) {
+        const when = item.timestamp || "no timestamp";
+        const duration = item.audioDurationSeconds ? `, ${fmt(item.audioDurationSeconds)}` : "";
+        lines.push(`  - ${when}${duration}: ${singleLine(item.text, 280)}`);
+      }
+    }
   }
   lines.push("");
 }
@@ -400,4 +413,10 @@ function fmt(seconds) {
   const m = Math.floor((s % 3600) / 60);
   if (h > 0) return `${h}h ${m}m`;
   return `${m}m`;
+}
+
+function singleLine(value, maxChars) {
+  const text = String(value || "").replace(/\s+/g, " ").trim();
+  if (text.length <= maxChars) return text;
+  return `${text.slice(0, maxChars).trimEnd()}...`;
 }
